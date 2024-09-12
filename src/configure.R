@@ -12,26 +12,38 @@
 #        )
 # 
 # st      = Sys.time()
-# vintage = paste0(lubridate::year(st), 
+# vintage = paste0(lubridate::year(st),
 #                  lubridate::month(st) %>%
-#                    paste0('0', .) %>% 
-#                    str_sub(-2),  
+#                    paste0('0', .) %>%
+#                    str_sub(-2),
 #                  lubridate::day(st) %>%
-#                    paste0('0', .) %>% 
-#                    str_sub(-2), 
+#                    paste0('0', .) %>%
+#                    str_sub(-2),
 #                  lubridate::hour(st) %>%
-#                    paste0('0', .) %>% 
-#                    str_sub(-2))    
+#                    paste0('0', .) %>%
+#                    str_sub(-2))
 
-build_full_schedule = function(path) {
+build_depreciation = function(root_path, years) {
   
-  years = 2025:2050
+  years = as.integer(years)
+  
+  print(root_path)
+  
+  build_full_schedule(file.path(root_path, 'b.yaml'), unique(expenses$year))%>%
+    pivot_longer(!year, names_to = 'schedule', values_to = 'b') %>%
+    left_join(., build_full_schedule(file.path(root_path, 'bonus.yaml'), unique(expenses$year)) %>%
+                pivot_longer(!year, names_to = 'schedule', values_to = 'bonus')) %>%
+    return()
+}
+
+build_full_schedule = function(path, years) {
   
   raw_config = read_yaml(path)
-  
+
   specified_years = raw_config %>%
     names() %>%
     as.integer()
+  
   
   df = tibble(year = years) %>%
     left_join(tibble(year = specified_years,
@@ -41,7 +53,8 @@ build_full_schedule = function(path) {
   
   1:nrow(df) %>%
     map(.f = ~ build_one_schedule(df$value[.x][[1]], df$year[.x])) %>%
-    bind_rows() %>%
+    bind_rows() %>% 
+    select(!schedule) %>%
     return()
 }
 
@@ -54,11 +67,9 @@ build_one_schedule = function(raw, year) {
     as.data.frame() %>%
     replace(is.na(.), 0) %>%
     rownames_to_column(., var='schedule') %>%
-    #rename_with(~as.character(year - 1 + as.integer(str_sub(., 2))), .cols = starts_with('V')) %>%
     mutate(year = year) %>%
     relocate(year, schedule) %>%
     return()
 }
-
 
 

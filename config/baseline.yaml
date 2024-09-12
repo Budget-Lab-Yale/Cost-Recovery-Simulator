@@ -6,9 +6,9 @@ runtime_options:
   write_locally: True
   
 dependency_info:
-  SCF:
+  Depreciation:
     type: raw_data
-    version: 1
+    version: test
     vintage: 2022
     scenario: historical
   Tax-Data:
