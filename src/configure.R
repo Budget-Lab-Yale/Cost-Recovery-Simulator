@@ -1,27 +1,27 @@
-# raw_config = read_yaml('./config/baseline.yaml')
-# 
-# interface_paths = raw_config$dependency_info %>%
-#   map2(.y = names(.),
-#        .f = ~ file.path(
-#          '/gpfs/gibbs/project/sarin/shared/',
-#          .x$type,
-#          .y,
-#          paste0('v', .x$version),
-#          .x$vintage,
-#          .x$scenario)
-#        )
-# 
-# st      = Sys.time()
-# vintage = paste0(lubridate::year(st),
-#                  lubridate::month(st) %>%
-#                    paste0('0', .) %>%
-#                    str_sub(-2),
-#                  lubridate::day(st) %>%
-#                    paste0('0', .) %>%
-#                    str_sub(-2),
-#                  lubridate::hour(st) %>%
-#                    paste0('0', .) %>%
-#                    str_sub(-2))
+raw_config = read_yaml('./config/baseline.yaml')
+
+interface_paths = raw_config$dependency_info %>%
+  map2(.y = names(.),
+       .f = ~ file.path(
+         '/gpfs/gibbs/project/sarin/shared/',
+         .x$type,
+         .y,
+         paste0('v', .x$version),
+         .x$vintage,
+         .x$scenario)
+       )
+
+st      = Sys.time()
+vintage = paste0(lubridate::year(st),
+                 lubridate::month(st) %>%
+                   paste0('0', .) %>%
+                   str_sub(-2),
+                 lubridate::day(st) %>%
+                   paste0('0', .) %>%
+                   str_sub(-2),
+                 lubridate::hour(st) %>%
+                   paste0('0', .) %>%
+                   str_sub(-2))
 
 build_depreciation = function(root_path, years) {
   

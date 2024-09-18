@@ -9,6 +9,8 @@ start = Sys.time()
 list.files('./src', recursive = T) %>% 
   walk(.f = ~ if (.x != 'main.R') source(file.path('./src/', .x)))
 
+# switch this for the macro path once Maddie is done
+
 expenses = read_csv('/gpfs/gibbs/project/sarin/shared/raw_data/Depreciation/test/expenses.csv') %>%
   pivot_longer(!year, names_to = 'schedule', values_to = 'investment')
 
@@ -29,49 +31,4 @@ as.numeric(end - start)
 
 # DO DEDUCTIONS BY DEDUCTION YEAR
 
-
-
-
-
-
-
-
-# SCRATCH
-# 
-# depreciation_rev = expenses$year %>%
-#   map(.f = ~ calc_depreciation(filter(expenses, year==.x), .x, as.character(expenses$year))
-#       ) %>%
-#   bind_rows() %>%
-#   mutate(year = as.character(year)) %>%
-#   bind_rows(
-#       reframe(
-#         ., 
-#         across(where(is.numeric), sum),
-#         across(where(is.character), ~ "Total")
-#       )
-#   )
-# 
-# depreciation_npv = expenses$year %>%
-#   map(.f = ~ calc_depreciation(filter(expenses, year==.x), .x, as.character(expenses$year), revenue = F)
-#   ) %>%
-#   bind_rows() %>%
-#   calc_npv() %>%
-#   mutate(year = as.character(year)) %>%
-#   bind_rows(
-#     reframe(
-#       ., 
-#       across(where(is.numeric), sum),
-#       across(where(is.character), ~ "Total")
-#     )
-#   )
-# 
-# frog = depreciation_npv %>%
-#   filter(year != 'Total') %>%
-#   mutate(year = as.integer(year)) %>%
-#   calc_npv()
-#     
-# 
-# 
-# 
-# 
-# npv = depreciation_npv %>% filter(year == 'Total')
+Deductions_by_Year = deductions_by_year(depreciation_rev)

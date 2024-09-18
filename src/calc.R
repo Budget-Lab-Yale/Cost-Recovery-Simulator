@@ -31,6 +31,33 @@ calc_macrs = function(expenses, all_years) {
   bonus = balance * as.numeric(expenses["bonus"])
   balance = balance - bonus
   
+  deductions = apply_deduction(balance, b, L)
+  
+  # Add in bonus and calculate for half year splits
+  deductions[1] = deductions[1] + bonus
+  out = deductions[1] / 2
+  
+  for(i in 2:length(deductions)) {
+    out = c(out, deductions[i-1]/2 + deductions[i]/2)
+  }
+  
+  # Set up and Construct output row
+  schedule = rep(schedule, L+1)
+  years = year:(year+L)
+  year = rep(year, L+1)
+  out = c(out, deductions[L]/2)
+  
+  tibble(year, schedule, years, out) %>%
+    pivot_wider(names_from = years, values_from = out) %>%
+    # Add columns with zeroes for all years in which a deduction isn't taken
+    fill_years(., all_years) %>%
+    pivot_longer(!c(year, schedule), names_to = 'years', values_to = 'depreciation') %>%
+    arrange(years) %>%
+    pivot_wider(names_from = years, values_from = depreciation) %>%
+    return()
+}
+
+apply_deduction = function(balance, b, L) {
   # Binary flag to switch from Declining Balance to Straight Line deduction
   switch = F
   deductions = c()
@@ -56,32 +83,11 @@ calc_macrs = function(expenses, all_years) {
     }
   }
   
-  # Add in bonus and calculate for half year splits
-  deductions[1] = deductions[1] + bonus
-  out = deductions[1] / 2
-  
-  for(i in 2:length(deductions)) {
-    out = c(out, deductions[i-1]/2 + deductions[i]/2)
-  }
-  
-  # Set up and Construct output row
-  schedule = rep(schedule, L+1)
-  years = year:(year+L)
-  year = rep(year, L+1)
-  out = c(out, deductions[L]/2)
-  
-  tibble(year, schedule, years, out) %>%
-    pivot_wider(names_from = years, values_from = out) %>%
-    # Add columns with zeroes for all years in which a deduction isn't taken
-    fill_years(., all_years)%>%
-    pivot_longer(!c(year, schedule), names_to = 'years', values_to = 'depreciation') %>%
-    arrange(years) %>%
-    pivot_wider(names_from = years, values_from = depreciation) %>%
-    return()
+  return(deductions)
 }
 
 declining_balance = function(balance, b, L) {
-  d_balance = balance * (1 -b/L)
+  d_balance = balance * (1 - b/L)
   return(c(d_balance, balance - d_balance))
 }
 
@@ -109,8 +115,6 @@ calc_npv = function(df) {
       spread = .02
     ) 
   
-  print(tsy)
-  
   df %>% left_join(., df$year %>%
     map(.f = ~ df %>% filter(year == .x) %>%
           pivot_longer(!c(year, schedule, investment), names_to = 'depreciation') %>%
@@ -134,12 +138,6 @@ calc_npv = function(df) {
     return()
   
 }
-
-
-
-
-
-
 
 
 

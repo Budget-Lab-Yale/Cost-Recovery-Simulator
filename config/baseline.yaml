@@ -11,11 +11,6 @@ dependency_info:
     version: test
     vintage: 2022
     scenario: historical
-  Tax-Data:
-    type: model_data
-    version: 1
-    vintage: 2023111913
-    scenario: baseline
   Macro-Projections:
     type: model_data
     version: 3
