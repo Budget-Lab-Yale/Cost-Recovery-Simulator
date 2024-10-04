@@ -1,40 +1,39 @@
-library(yaml)
 library(tidyverse)
 library(data.table)
 library(magrittr)
 
+# User-supplied parameters 
+runscript_id = 'baseline'
+
+
+#---------------
+# Configuration
+#---------------
 
 # Define functions
 list.files('./src', recursive = T) %>% 
   walk(.f = ~ if (.x != 'main.R') source(file.path('./src/', .x)))
 
-# TODO parse runsript / set globals
-globals = list()
+# Read runscript 
+runscript = file.path('./config/runscripts/', paste0(runscript_id, '.csv')) %>% 
+  read_csv(show_col_types = F)
 
-# TODO scenario loop
+
+#---------------
+# Scenario loop
+#---------------
+
 ids = c('baseline')
 for (id in ids) {
   
-  # Read investment projections
-  investment = c('historical_data.csv', 'baseline_projections.csv') %>% 
-    map(~ read_csv(file.path('./resources/input/baseline/', .x), show_col_types = F)) %>% 
-    bind_rows() %>%
-    pivot_longer(
-      cols      = -year, 
-      names_to  = 'asset_class', 
-      values_to = 'investment'
-    ) %>% 
+  # Get scenario info
+  scenario_info = get_scenario_info(id)
+  
+  # Build investment data
+  investment = build_investment_data(scenario_info)
     
-    # Build and join tax law
-    left_join(
-      build_tax_law('baseline', max(.$year)), 
-      by = c('year', 'asset_class')
-    )
-  
-  temp = investment %>% filter(year > 1999 & !is.na(L))
-  
   # TODO Calculate depreciation deductions
-  depreciation_deductions = calc_depreciation(temp)
+  depreciation_deductions = calc_depreciation(investment)
   
   # TODO calculate deductions by year
   deductions_by_Year = deductions_by_year(depreciation_deductions)
