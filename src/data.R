@@ -76,6 +76,9 @@ build_investment_data = function(scenario_info) {
   id    = scenario_info$id
   years = scenario_info$years
   
+  # Build tax law
+  tax_law = build_tax_law(scenario_info)
+  
   # Read investment projections
   investment = c('historical_data.csv', 'baseline_projections.csv') %>% 
     map(~ read_csv(file.path('./resources/input/', id, .x), show_col_types = F)) %>% 
@@ -86,11 +89,15 @@ build_investment_data = function(scenario_info) {
       values_to = 'investment'
     ) %>% 
   
-    # Build and join tax law
-    left_join(build_tax_law(scenario_info), by = c('year', 'asset_class')) %>% 
+    # Join tax law
+    left_join(tax_law, by = c('year', 'asset_class')) %>% 
     
     # Filter to specified years
     filter(year %in% years) %>% 
+    
+    # Filter out variables with no corresponding tax law info 
+    # (i.e. aggregated asset class summary variables in projections)
+    filter(asset_class %in% unique(tax_law$asset_class)) %>%
     return()
 }
 
