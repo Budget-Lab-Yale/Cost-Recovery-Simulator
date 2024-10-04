@@ -30,10 +30,12 @@ for (id in ids) {
       build_tax_law('baseline', max(.$year)), 
       by = c('year', 'asset_class')
     )
-
+  
+  temp = investment %>% filter(year > 1999 & !is.na(L))
+  
   # TODO Calculate depreciation deductions
-  depreciation_deductions = calc_depreciation(investment)
+  depreciation_deductions = calc_depreciation(temp)
   
   # TODO calculate deductions by year
-  deductions_by_Year = deductions_by_year(depreciation_rev)
+  deductions_by_Year = deductions_by_year(depreciation_deductions)
 }

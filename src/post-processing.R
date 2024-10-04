@@ -24,7 +24,7 @@ calc_rate_schedule = function() {
 deductions_by_year = function(depreciation) {
   
   depreciation %>%
-    pivot_longer(!c(year, schedule), names_to = 'Deduction_Year', values_to = 'Deduction') %>%
+    pivot_longer(!c(year, asset_class), names_to = 'Deduction_Year', values_to = 'Deduction') %>%
     group_by(Deduction_Year) %>%
     reframe(
       Deduction = sum(Deduction)

@@ -1,7 +1,7 @@
 calc_depreciation = function(expenses) {
   
   # Pulls number from schedule TODO
-  h = max(as.numeric(gsub("([0-9]+).*$", "\\1", expenses$schedule)))
+  h = max(expenses$L)
   
   # All possible years a deduction can be taken
   all_years = c(unique(expenses$year), (max(expenses$year)+1):(max(expenses$year) + h))
@@ -19,19 +19,19 @@ calc_macrs = function(expenses, all_years) {
   
   # Year of investment
   year = as.integer(expenses["year"])
-  # Depreciation schedule TODO
-  schedule = expenses["schedule"]
   # Length of schedule
-  L = as.numeric(gsub("([0-9]+).*$", "\\1", schedule))
+  L = as.numeric(expenses["L"])
   # Asset class parameter
-  b = as.numeric(expenses["b"])
+  B = as.numeric(expenses["B"])
+  # Section 179 parameter
+  s179 = as.numeric(expenses["s179"])
   
   # Calculate balance to be expensed, after withrdawing bonus
   balance = as.numeric(expenses["investment"])
-  bonus = balance * as.numeric(expenses["bonus"])
+  bonus = balance * (s179 + as.numeric(expenses["bonus"]) * (1 - s179))
   balance = balance - bonus
   
-  deductions = apply_deduction(balance, b, L)
+  deductions = apply_deduction(balance, B, L)
   
   # Add in bonus and calculate for half year splits
   deductions[1] = deductions[1] + bonus
@@ -41,33 +41,35 @@ calc_macrs = function(expenses, all_years) {
     out = c(out, deductions[i-1]/2 + deductions[i]/2)
   }
   
+  L = ceiling(L)
+  
   # Set up and Construct output row
-  schedule = rep(schedule, L+1)
+  asset_class = rep(expenses["asset_class"], L+1)
   years = year:(year+L)
   year = rep(year, L+1)
   out = c(out, deductions[L]/2)
   
-  tibble(year, schedule, years, out) %>%
+  tibble(year, asset_class, years, out) %>%
     pivot_wider(names_from = years, values_from = out) %>%
     # Add columns with zeroes for all years in which a deduction isn't taken
     fill_years(., all_years) %>%
-    pivot_longer(!c(year, schedule), names_to = 'years', values_to = 'depreciation') %>%
+    pivot_longer(!c(year, asset_class), names_to = 'years', values_to = 'depreciation') %>%
     arrange(years) %>%
     pivot_wider(names_from = years, values_from = depreciation) %>%
     return()
 }
 
-apply_deduction = function(balance, b, L) {
+apply_deduction = function(balance, B, L) {
   # Binary flag to switch from Declining Balance to Straight Line deduction
   switch = F
   deductions = c()
   
-  for(i in 1:L) {
+  for(i in 1:ceiling(L)) {
     s_balance = straight_line(balance, L)
     
     if(!switch) {
       # Calculate and append Declining Balance deduction
-      d_balance = declining_balance(balance, b, L)
+      d_balance = declining_balance(balance, B, L)
       balance = d_balance[1]
       deductions = c(deductions, d_balance[2])
       
@@ -86,8 +88,8 @@ apply_deduction = function(balance, b, L) {
   return(deductions)
 }
 
-declining_balance = function(balance, b, L) {
-  d_balance = balance * (1 - b/L)
+declining_balance = function(balance, B, L) {
+  d_balance = balance * (1 - B/L)
   return(c(d_balance, balance - d_balance))
 }
 
