@@ -6,11 +6,6 @@ runtime_options:
   write_locally: True
   
 dependency_info:
-  Depreciation:
-    type: raw_data
-    version: test
-    vintage: 2022
-    scenario: historical
   Macro-Projections:
     type: model_data
     version: 3

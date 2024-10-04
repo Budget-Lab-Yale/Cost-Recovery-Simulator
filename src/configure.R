@@ -52,20 +52,22 @@ configure_globals = function(runscript_id) {
 
 
 
-build_tax_law = function(id) {
+build_tax_law = function(id, last_year) {
   
   #----------------------------------------------------------------------------
-  # Creates tax law dataframe
+  # Creates tax law dataframe based on four input files. Extends series 
+  # beyond last year if specified.
   #
   # Parameters:
-  #  - id (str) : scenario ID
+  #  - id        (str) : scenario ID
+  #  - last_year (int) : last year
   # 
   # Returns:
   # - tax law dataframe (df)
   #----------------------------------------------------------------------------
   
   # Read and bind all four files  
-  c('L', 'B', 'bonus', 's179') %>% 
+  tax_law = c('L', 'B', 'bonus', 's179') %>% 
     map(
       .f = ~ file.path('./config/tax_law/baseline/', paste0(.x, '.csv')) %>% 
         read_csv(show_col_types = F) %>% 
@@ -73,13 +75,27 @@ build_tax_law = function(id) {
     ) %>% 
     bind_rows() %>% 
     
-    # Reshape long in year
+    # Reshape long in year and wider in parameter
     pivot_longer(
       cols            = -c(asset_class, param), 
       names_to        = 'year', 
       names_transform = as.integer
     ) %>% 
     select(year, asset_class, param, value) %>% 
+    pivot_wider(names_from = param) 
+  
+  # Extend series 
+  if (last_year > max(tax_law$year)) { 
+    tax_law %<>% 
+      bind_rows(
+        tax_law %>% 
+          filter(year == max(year)) %>% 
+          select(-year) %>% 
+          expand_grid(year = max(tax_law$year):last_year) 
+      )
+  }
+  
+  tax_law %>% 
     arrange(year, asset_class) %>% 
     return()
 }
