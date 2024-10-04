@@ -39,8 +39,15 @@ build_tax_law = function(scenario_info) {
       names_transform = as.integer
     ) %>% 
     select(year, asset_class, param, value) %>% 
-    pivot_wider(names_from = param) 
+    pivot_wider(names_from = param) %>%  
   
+    # Join other (non asset-class-specific) parameters  
+    left_join(
+      file.path('./config/tax_law/', id, 'other.csv') %>% 
+        read_csv(show_col_types = F), 
+      by = 'year'
+    )
+    
   # Extend series beyond last specified tax law year (assume constant policy)
   if (max(years) > max(tax_law$year)) { 
     tax_law %<>% 
