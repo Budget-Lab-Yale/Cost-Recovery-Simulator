@@ -15,7 +15,7 @@ expenses = read_csv('/gpfs/gibbs/project/sarin/shared/raw_data/Depreciation/test
   pivot_longer(!year, names_to = 'schedule', values_to = 'investment')
 
 
-tax_law = build_depreciation('./config/schedules/baseline', as.character(expenses$year))
+tax_law = build_tax_law('baseline')
 
 # Attach Tax Law (not working)
 expenses %<>%

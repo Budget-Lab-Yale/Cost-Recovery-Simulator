@@ -1,75 +1,85 @@
-raw_config = read_yaml('./config/baseline.yaml')
+#----------------------------------------------------------
+# configure.R
+# 
+# Functions to configure interface paths and parse tax law
+#----------------------------------------------------------
 
-interface_paths = raw_config$dependency_info %>%
-  map2(.y = names(.),
-       .f = ~ file.path(
-         '/gpfs/gibbs/project/sarin/shared/',
-         .x$type,
-         .y,
-         paste0('v', .x$version),
-         .x$vintage,
-         .x$scenario)
-       )
 
-st      = Sys.time()
-vintage = paste0(lubridate::year(st),
-                 lubridate::month(st) %>%
-                   paste0('0', .) %>%
-                   str_sub(-2),
-                 lubridate::day(st) %>%
-                   paste0('0', .) %>%
-                   str_sub(-2),
-                 lubridate::hour(st) %>%
-                   paste0('0', .) %>%
-                   str_sub(-2))
-
-build_depreciation = function(root_path, years) {
+configure_globals = function(runscript_id) {
   
-  years = as.integer(years)
+  #----------------------------------------------------------------------------
+  # TODO build out 
+  # 
+  # 
+  #----------------------------------------------------------------------------
+ 
   
-  print(root_path)
+  raw_config = read_yaml('./config/baseline.yaml')
   
-  build_full_schedule(file.path(root_path, 'b.yaml'), unique(expenses$year))%>%
-    pivot_longer(!year, names_to = 'schedule', values_to = 'b') %>%
-    left_join(., build_full_schedule(file.path(root_path, 'bonus.yaml'), unique(expenses$year)) %>%
-                pivot_longer(!year, names_to = 'schedule', values_to = 'bonus')) %>%
-    return()
+  
+  interface_paths = raw_config$dependency_info %>%
+    map2(.y = names(.),
+         .f = ~ file.path(
+           '/gpfs/gibbs/project/sarin/shared/',
+           .x$type,
+           .y,
+           paste0('v', .x$version),
+           .x$vintage,
+           .x$scenario)
+    )
+  
+  st      = Sys.time()
+  vintage = paste0(lubridate::year(st),
+                   lubridate::month(st) %>%
+                     paste0('0', .) %>%
+                     str_sub(-2),
+                   lubridate::day(st) %>%
+                     paste0('0', .) %>%
+                     str_sub(-2),
+                   lubridate::hour(st) %>%
+                     paste0('0', .) %>%
+                     str_sub(-2))
+  
+  return(
+    list(
+      interface_paths = interface_paths
+    )
+  )
+  
 }
 
-build_full_schedule = function(path, years) {
-  
-  raw_config = read_yaml(path)
 
-  specified_years = raw_config %>%
-    names() %>%
-    as.integer()
+
+
+
+build_tax_law = function(id) {
   
+  #----------------------------------------------------------------------------
+  # Creates tax law dataframe
+  #
+  # Parameters:
+  #  - id (str) : scenario ID
+  # 
+  # Returns:
+  # - tax law dataframe (df)
+  #----------------------------------------------------------------------------
   
-  df = tibble(year = years) %>%
-    left_join(tibble(year = specified_years,
-                     value = raw_config),
-              by='year') %>%
-    fill(value)
-  
-  1:nrow(df) %>%
-    map(.f = ~ build_one_schedule(df$value[.x][[1]], df$year[.x])) %>%
+  # Read and bind all four files  
+  c('L', 'B', 'bonus', 's179') %>% 
+    map(
+      .f = ~ file.path('./config/tax_law/baseline/', paste0(.x, '.csv')) %>% 
+        read_csv(show_col_types = F) %>% 
+        mutate(param = .x) 
+    ) %>% 
     bind_rows() %>% 
-    select(!schedule) %>%
+    
+    # Reshape long in year
+    pivot_longer(
+      cols            = -c(asset_class, param), 
+      names_to        = 'year', 
+      names_transform = as.integer
+    ) %>% 
+    select(year, asset_class, param, value) %>% 
+    arrange(year, asset_class) %>% 
     return()
 }
-
-build_one_schedule = function(raw, year) {
-  
-  types = sapply(raw, length)
-  year_max = seq_len(max(types))
-  
-  t(sapply(raw, '[', i = year_max)) %>%
-    as.data.frame() %>%
-    replace(is.na(.), 0) %>%
-    rownames_to_column(., var='schedule') %>%
-    mutate(year = year) %>%
-    relocate(year, schedule) %>%
-    return()
-}
-
-

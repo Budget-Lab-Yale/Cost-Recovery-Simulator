@@ -1,5 +1,6 @@
 
 calc_rate_schedule = function() {
+  
   # get the b's and L's from the config file
   
   horizon = 20
@@ -8,7 +9,7 @@ calc_rate_schedule = function() {
     map(.f = ~ apply_deduction(1, pairs[.x, "b"], pairs[.x, "L"]) %>%
           as_tibble() %>%
           rowid_to_column() %>%
-          pivot_wider(names_from = rowid, values_from = value)
+          pivot_wider(names_from = rowid, values_from = value) %>% 
           fill_years(., 1:horizon) %>%
           mutate(schedule = pairs[.x, "schedule"]) %>%
           pivot_longer(!schedule, names_to = 'years', values_to = 'depreciation') %>%
