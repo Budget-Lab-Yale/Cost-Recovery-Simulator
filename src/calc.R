@@ -1,3 +1,10 @@
+#----------------------------------------------------------
+# calc.R
+# 
+# Contains functions to calculate depreciation deductions
+# given investment projections and tax law parameters
+#----------------------------------------------------------
+
 calc_depreciation = function(investment, macro_projections) {
   
   # Pulls number from schedule TODO
