@@ -10,7 +10,7 @@ runscript_id = 'baseline'
 # Configuration
 #---------------
 
-# Define functions
+# Source all functions
 list.files('./src', recursive = T) %>% 
   walk(.f = ~ if (.x != 'main.R') source(file.path('./src/', .x)))
 
@@ -31,9 +31,12 @@ for (id in ids) {
   
   # Build investment data
   investment = build_investment_data(scenario_info)
+  
+  # TODO Read macro projections (PLACEHOLDER)
+  macro_projections = read_csv('./resources/input/macro_projections.csv')
     
   # TODO Calculate depreciation deductions
-  depreciation_deductions = calc_depreciation(investment)
+  depreciation_deductions = calc_depreciation(investment, macro_projections)
   
   # TODO calculate deductions by year
   deductions_by_Year = deductions_by_year(depreciation_deductions)

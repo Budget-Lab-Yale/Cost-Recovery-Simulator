@@ -11,14 +11,19 @@ calc_depreciation = function(investment, macro_projections) {
     mutate(inflation = cpi / lag(cpi) - 1) %>% 
     select(year, inflation, timevalue = yield)
   
+  # Iterate over each asset class-year observation
   1:nrow(investment) %>%
-    map(.f = ~ calc_macrs(investment[.x,], all_years)) %>%
+    
+    # Calculate depreciation deductions
+    map(.f = ~ calc_macrs(investment[.x,], indexes, all_years)) %>%
     bind_rows() %>%
+    
+    # Replace NAs (no deduction that year) with 0s
+    mutate(across(.cols = -year, .fns = ~ replace_na(., 0))) %>% 
     return()
-  
 }
 
-calc_macrs = function(investment, all_years) {
+calc_macrs = function(investment, indexes, all_years) {
   
   # Recasts values to be more usuable
   
@@ -72,11 +77,6 @@ calc_macrs = function(investment, all_years) {
   
   tibble(year, asset_class, years, out) %>%
     pivot_wider(names_from = years, values_from = out) %>%
-    # Add columns with zeroes for all years in which a deduction isn't taken
-    fill_years(., all_years) %>%
-    pivot_longer(!c(year, asset_class), names_to = 'years', values_to = 'depreciation') %>%
-    arrange(years) %>%
-    pivot_wider(names_from = years, values_from = depreciation) %>%
     return()
 }
 
@@ -120,11 +120,6 @@ straight_line = function(balance, L) {
 }
 
 
-fill_years = function(df, cols) {
-  add = as.character(cols[!cols %in% names(df)])
-  if(length(add) != 0) df[add] = 0
-  return(df)
-}
 
 calc_npv = function(df) {
   tsy = 'projections.csv' %>%
