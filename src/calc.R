@@ -35,21 +35,17 @@ calc_all_depreciation = function(investment, macro_projections) {
 
 calc_depreciation = function(investment, indexes, all_years) {
   
-  # Recasts values to be more usuable
-  
-  # Year of investment
-  year = as.integer(investment["year"])
-  # Length of schedule
-  L = as.numeric(investment["L"])
-  # Asset class parameter
-  B = as.numeric(investment["B"])
-  # Section 179 parameter
-  s179 = as.numeric(investment["s179"])
+  # Extract values from tibble
+  year    = investment$year       # Year of investment
+  L       = investment$L          # Cost recovery period
+  B       = investment$B          # Decay rate
+  bonus   = investment$bonus      # Section 168(k) "bonus" depreciation rate
+  s179    = investment$s179       # Share of investment eligible for section 179 expensing
+  balance = investment$investment # Initial investment basis
   
   # Calculate balance to be depreciated after accounting for amount expensed
-  balance = as.numeric(investment["investment"])
-  expensed = balance * (s179 + as.numeric(investment["bonus"]) * (1 - s179))
-  balance = balance - expensed
+  expensed = balance * (s179 + bonus * (1 - s179))
+  balance  = balance - expensed
   
   # Calculate schedule of MACRS deductions
   deductions = calc_macrs(balance, B, L)
@@ -78,17 +74,10 @@ calc_depreciation = function(investment, indexes, all_years) {
     }
   }
   
-  # Construct output row
+  # Construct output row and return
   L = ceiling(L)
-  
-  tibble(
-    deduction_year = year:(year + L), 
-    value = c(out, deductions[L]/2)
-  ) %>%
-    mutate(
-      year = year, 
-      asset_class = investment$asset_class
-    ) %>% 
+  tibble(deduction_year = year:(year + L), value = c(out, deductions[L]/2)) %>%
+    mutate(year = year, asset_class = investment$asset_class) %>% 
     return()
 }
 
