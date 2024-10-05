@@ -55,7 +55,7 @@ build_tax_law = function(scenario_info) {
         tax_law %>% 
           filter(year == max(year)) %>% 
           select(-year) %>% 
-          expand_grid(year = max(tax_law$year):max(years)) 
+          expand_grid(year = (max(tax_law$year) + 1):max(years)) 
       )
   }
   

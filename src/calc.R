@@ -18,6 +18,9 @@ calc_depreciation = function(investment, macro_projections) {
     map(.f = ~ calc_macrs(investment[.x,], indexes, all_years)) %>%
     bind_rows() %>%
     
+    # Reshape wide in deduction year
+    pivot_wider(names_from = deduction_year) %>% 
+    
     # Replace NAs (no deduction that year) with 0s
     mutate(across(.cols = -year, .fns = ~ replace_na(., 0))) %>% 
     return()
@@ -68,17 +71,21 @@ calc_macrs = function(investment, indexes, all_years) {
     }
   }
   
-  # Set up and Construct output row
+  # Construct output row
   L = ceiling(L)
-  asset_class = rep(investment["asset_class"], L+1)
-  years = year:(year+L)
-  year = rep(year, L+1)
-  out = c(out, deductions[L]/2)
   
-  tibble(year, asset_class, years, out) %>%
-    pivot_wider(names_from = years, values_from = out) %>%
+  tibble(
+    deduction_year = year:(year + L), 
+    value = c(out, deductions[L]/2)
+  ) %>%
+    mutate(
+      year = year, 
+      asset_class = investment$asset_class
+    ) %>% 
     return()
 }
+
+
 
 apply_deduction = function(balance, B, L) {
   # Binary flag to switch from Declining Balance to Straight Line deduction
