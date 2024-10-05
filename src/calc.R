@@ -5,7 +5,7 @@
 # given investment projections and tax law parameters
 #----------------------------------------------------------
 
-calc_depreciation = function(investment, macro_projections) {
+calc_all_depreciation = function(investment, macro_projections) {
   
   # Pulls number from schedule TODO
   h = max(investment$L)
@@ -22,7 +22,7 @@ calc_depreciation = function(investment, macro_projections) {
   1:nrow(investment) %>%
     
     # Calculate depreciation deductions
-    map(.f = ~ calc_macrs(investment[.x,], indexes, all_years)) %>%
+    map(.f = ~ calc_depreciation(investment[.x,], indexes, all_years)) %>%
     bind_rows() %>%
     
     # Reshape wide in deduction year
@@ -33,7 +33,7 @@ calc_depreciation = function(investment, macro_projections) {
     return()
 }
 
-calc_macrs = function(investment, indexes, all_years) {
+calc_depreciation = function(investment, indexes, all_years) {
   
   # Recasts values to be more usuable
   
@@ -52,7 +52,7 @@ calc_macrs = function(investment, indexes, all_years) {
   balance = balance - expensed
   
   # Calculate schedule of MACRS deductions
-  deductions = apply_deduction(balance, B, L)
+  deductions = calc_macrs(balance, B, L)
   
   # Add expensed amount to schedule 
   deductions[1] = deductions[1] + expensed
@@ -94,7 +94,7 @@ calc_macrs = function(investment, indexes, all_years) {
 
 
 
-apply_deduction = function(balance, B, L) {
+calc_macrs = function(balance, B, L) {
   # Binary flag to switch from Declining Balance to Straight Line deduction
   switch = F
   deductions = c()

@@ -35,9 +35,9 @@ for (id in ids) {
   # TODO Read macro projections (PLACEHOLDER)
   macro_projections = read_csv('./resources/input/macro_projections.csv')
     
-  # TODO Calculate depreciation deductions
-  depreciation_deductions = calc_depreciation(investment, macro_projections)
+  # Calculate depreciation deductions
+  by_asset_year = calc_all_depreciation(investment, macro_projections)
   
   # TODO calculate deductions by year
-  deductions_by_Year = deductions_by_year(depreciation_deductions)
+  by_year = deductions_by_year(by_asset_year)
 }
