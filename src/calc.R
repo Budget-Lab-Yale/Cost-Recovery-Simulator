@@ -77,7 +77,12 @@ calc_depreciation = function(investment, indexes, all_years) {
   # Construct output row and return
   L = ceiling(L)
   tibble(deduction_year = year:(year + L), value = c(out, deductions[L]/2)) %>%
-    mutate(year = year, asset_class = investment$asset_class) %>% 
+    mutate(
+      year        = year, 
+      asset_class = investment$asset_class, 
+      investment  = investment$investment
+    ) %>% 
+    select(year, asset_class, investment, deduction_year, value) %>% 
     return()
 }
 

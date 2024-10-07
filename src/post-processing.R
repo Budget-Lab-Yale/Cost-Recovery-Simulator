@@ -1,4 +1,34 @@
 
+
+
+get_by_deduction_year = function(deductions_detailed) {
+  
+  #----------------------------------------------------------------------------
+  # Tabulates total deductions by deduction year.
+  # 
+  # Parameters:
+  #  - deductions_detailed (df) : tibble of deductions by asset class, long in
+  #                               investment year and wide in deduction year 
+  #                               (see calc_all_depreciation()) 
+  #
+  # Returns:
+  #  - long tibble of deductions by deduction year (df) 
+  #----------------------------------------------------------------------------
+  
+  deductions_detailed %>%
+    pivot_longer(
+      cols      = -c(year, asset_class, investment), 
+      names_to  = 'deduction_year', 
+      values_to = 'deductions'
+    ) %>%
+    group_by(deduction_year) %>%
+    summarise(deductions = sum(deductions)) %>%
+    return()
+}
+
+
+
+
 calc_rate_schedule = function() {
   
   # get the b's and L's from the config file
@@ -16,18 +46,10 @@ calc_rate_schedule = function() {
           arrange(years) %>%
           pivot_wider(names_from = years, values_from = depreciation) %>%
           rename(across(!c()))
-        ) %>%
-        bind_rows() %>%
-        return()
-}
-
-deductions_by_year = function(depreciation) {
-  
-  depreciation %>%
-    pivot_longer(!c(year, asset_class), names_to = 'Deduction_Year', values_to = 'Deduction') %>%
-    group_by(Deduction_Year) %>%
-    reframe(
-      Deduction = sum(Deduction)
     ) %>%
+    bind_rows() %>%
     return()
 }
+
+
+
