@@ -1,9 +1,19 @@
 #----------------------------------------------------------
 # configure.R
 # 
-# Functions to configure interface paths and parse tax law
+# Functions and operations to configure file paths and 
+# parse tax law
 #----------------------------------------------------------
 
+# Read runscript 
+runscript = file.path('./config/runscripts/', paste0(runscript_id, '.csv')) %>% 
+  read_csv(show_col_types = F)
+
+# Instantiate global file paths
+platform_paths = read_csv('./config/platform_paths.csv', show_col_types = T)
+
+# Create output paths
+# TODO
 
 
 get_scenario_info = function(id) { 

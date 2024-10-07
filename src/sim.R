@@ -29,8 +29,8 @@ do_scenario = function(id) {
   # Return list of output tables 
   return(
     list(
-      deductions_detailed, 
-      by_deduction_year
+      deductions_detailed = deductions_detailed, 
+      by_deduction_year   = by_deduction_year
     ) 
   )
   
