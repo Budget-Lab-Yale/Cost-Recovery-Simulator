@@ -1,3 +1,9 @@
+#------------------------------------------------------------
+# sim.R
+#
+# Contains functions to run simulation for a single scenario
+#------------------------------------------------------------
+
 
 do_scenario = function(id) {
   
@@ -35,5 +41,4 @@ do_scenario = function(id) {
       recovery_ratios     = recovery_ratios
     ) 
   )
-  
 }
