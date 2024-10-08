@@ -64,7 +64,7 @@ calc_recovery_ratios = function(deductions_detailed, macro_projections, spread =
       macro_projections %>% 
         mutate(
           inflation_rate = cpiu / lag(cpiu) - 1, 
-          discount_rate  = tsy_10 / 100 + spread
+          discount_rate  = tsy_10y / 100 + spread
         ) %>% 
         select(year, inflation_rate, discount_rate), 
       by = c('deduction_year' = 'year')
@@ -74,7 +74,7 @@ calc_recovery_ratios = function(deductions_detailed, macro_projections, spread =
     group_by(asset_class, year) %>% 
     summarise(
       real = sum(deductions / cumprod(1 + lag(inflation_rate, default = 0))),
-      pv   = sum(deductions / cumprod(1 + lag(discount_rate, default = 0))), 
+      pv   = sum(deductions / cumprod(1 + lag(discount_rate,  default = 0))), 
       .groups = 'drop'
     ) %>% 
     
@@ -99,9 +99,6 @@ calc_recovery_ratios = function(deductions_detailed, macro_projections, spread =
     return()
 }
   
-
-
-
 
 
 

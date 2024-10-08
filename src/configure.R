@@ -5,15 +5,16 @@
 # parse tax law
 #----------------------------------------------------------
 
+# Set model version 
+version = 1
+
 # Read runscript 
 runscript = file.path('./config/runscripts/', paste0(runscript_id, '.csv')) %>% 
   read_csv(show_col_types = F)
 
-# Instantiate global file paths
-platform_paths = read_csv('./config/platform_paths.csv', show_col_types = T)
+# Instantiate global file roots
+platform_defaults = read_yaml('./config/platform_defaults.yaml')
 
-# Create output paths
-# TODO
 
 
 get_scenario_info = function(scenario_id) { 
@@ -32,7 +33,7 @@ get_scenario_info = function(scenario_id) {
   scenario_info = runscript %>% 
     filter(id == scenario_id) %>% 
     unlist() %>% 
-    as.list() 
+    as.list()
   
   # Parse years
   years = scenario_info$years %>% 
@@ -40,7 +41,24 @@ get_scenario_info = function(scenario_id) {
     as.integer()
   scenario_info$years = years[1]:years[2]
   
-  return(scenario_info)
+  # Create data dependency paths
+  scenario_info$paths = list()
+  scenario_info$paths$`Investment-Projections` = file.path(
+    platform_defaults$roots$input, 
+    ifelse(is.null(scenario_info$`Investment-Projections`), 
+           platform_defaults$dependencies$`Investment-Projections`, 
+           scenario_info$`Investment-Projections`)
+  )
+  scenario_info$paths$`Macro-Projections` = file.path(
+    platform_defaults$roots$input, 
+    ifelse(is.null(scenario_info$`Macro-Projections`), 
+           platform_defaults$dependencies$`Macro-Projections`, 
+           scenario_info$`Macro-Projections`)
+  )
+  scenario_info$`Investment-Projections` = NULL
+  scenario_info$`Macro-Projections`      = NULL
   
+  
+  return(scenario_info)
 }
 

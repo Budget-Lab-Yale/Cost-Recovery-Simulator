@@ -18,15 +18,12 @@ build_tax_law = function(scenario_info) {
   # Returns:
   # - tax law dataframe (df)
   #----------------------------------------------------------------------------
-  
-  # Extract elements of scenario info
-  id    = scenario_info$id
-  years = scenario_info$years
-  
+
+
   # Read and bind all four files  
   tax_law = c('L', 'B', 'bonus', 's179') %>% 
     map(
-      .f = ~ file.path('./config/tax_law/', id, paste0(.x, '.csv')) %>% 
+      .f = ~ file.path('./config/tax_law/', scenario_info$tax_law, paste0(.x, '.csv')) %>% 
         read_csv(show_col_types = F) %>% 
         mutate(param = .x) 
     ) %>% 
@@ -43,19 +40,19 @@ build_tax_law = function(scenario_info) {
   
     # Join other (non asset-class-specific) parameters  
     left_join(
-      file.path('./config/tax_law/', id, 'other.csv') %>% 
+      file.path('./config/tax_law/', scenario_info$tax_law, 'other.csv') %>% 
         read_csv(show_col_types = F), 
       by = 'year'
     )
     
   # Extend series beyond last specified tax law year (assume constant policy)
-  if (max(years) > max(tax_law$year)) { 
+  if (max(scenario_info$years) > max(tax_law$year)) { 
     tax_law %<>% 
       bind_rows(
         tax_law %>% 
           filter(year == max(year)) %>% 
           select(-year) %>% 
-          expand_grid(year = (max(tax_law$year) + 1):max(years)) 
+          expand_grid(year = (max(tax_law$year) + 1):max(scenario_info$years)) 
       )
   }
   
@@ -78,17 +75,15 @@ build_investment_data = function(scenario_info) {
   # - investment + tax law dataframe (df)
   #----------------------------------------------------------------------------
   
-  
-  # Extract elements of scenario info
-  id    = scenario_info$id
-  years = scenario_info$years
-  
   # Build tax law
   tax_law = build_tax_law(scenario_info)
   
   # Read investment projections
-  investment = c('historical_data.csv', 'baseline_projections.csv') %>% 
-    map(~ read_csv(file.path('./resources/input/', id, .x), show_col_types = F)) %>% 
+  investment = c('historical.csv', 'projections.csv') %>% 
+    map( 
+      ~ file.path(scenario_info$paths$`Investment-Projections`, .x) %>% 
+          read_csv(show_col_types = F)
+    ) %>% 
     bind_rows() %>%
     pivot_longer(
       cols      = -year, 
@@ -100,7 +95,7 @@ build_investment_data = function(scenario_info) {
     left_join(tax_law, by = c('year', 'asset_class')) %>% 
     
     # Filter to specified years
-    filter(year %in% years) %>% 
+    filter(year %in% scenario_info$years) %>% 
     
     # Filter out variables with no corresponding tax law info 
     # (i.e. aggregated asset class summary variables in projections)

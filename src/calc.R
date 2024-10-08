@@ -15,8 +15,8 @@ calc_all_depreciation = function(investment, macro_projections) {
 
   # Parse indexation values
   indexes = macro_projections %>% 
-    mutate(inflation = cpi / lag(cpi) - 1) %>% 
-    select(year, inflation, timevalue = yield)
+    mutate(inflation = cpiu / lag(cpiu) - 1, timevalue = tsy_10y / 100) %>% 
+    select(year, inflation, timevalue)
   
   # Iterate over each asset class-year observation
   1:nrow(investment) %>%
@@ -32,6 +32,8 @@ calc_all_depreciation = function(investment, macro_projections) {
     mutate(across(.cols = -year, .fns = ~ replace_na(., 0))) %>% 
     return()
 }
+
+
 
 calc_depreciation = function(investment, indexes, all_years) {
   
