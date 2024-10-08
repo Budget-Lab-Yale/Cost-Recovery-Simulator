@@ -16,13 +16,13 @@ platform_paths = read_csv('./config/platform_paths.csv', show_col_types = T)
 # TODO
 
 
-get_scenario_info = function(id) { 
+get_scenario_info = function(scenario_id) { 
   
   #----------------------------------------------------------------------------
   # Parses runscript info for given scenario ID into list format.
   #
   # Parameters:
-  #  - id (str) : scenario ID
+  #  - scenario_id (str) : scenario ID
   # 
   # Returns:
   # - list of runscript elements for specified scenario (list)
@@ -30,7 +30,7 @@ get_scenario_info = function(id) {
   
   # Get scenario info in list format
   scenario_info = runscript %>% 
-    filter(id == id) %>% 
+    filter(id == scenario_id) %>% 
     unlist() %>% 
     as.list() 
   
