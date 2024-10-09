@@ -19,45 +19,68 @@ build_tax_law = function(scenario_info) {
   # - tax law dataframe (df)
   #----------------------------------------------------------------------------
 
+  # Read core tax law file
+  tax_law = file.path('./config/tax_law/', paste0(scenario_info$tax_law, '.csv')) %>% 
+    read_csv(show_col_types = F) 
 
-  # Read and bind all four files  
-  tax_law = c('L', 'B', 'bonus', 's179') %>% 
-    map(
-      .f = ~ file.path('./config/tax_law/', scenario_info$tax_law, paste0(.x, '.csv')) %>% 
-        read_csv(show_col_types = F) %>% 
-        mutate(param = .x) 
-    ) %>% 
-    bind_rows() %>% 
+  # For each multi-dimension parameter...
+  params = list()
+  for (param in c('B', 'L', 'bonus', 's179')) {
     
-    # Reshape long in year and wider in parameter
-    pivot_longer(
-      cols            = -c(asset_class, param), 
-      names_to        = 'year', 
-      names_transform = as.integer
-    ) %>% 
-    select(year, asset_class, param, value) %>% 
-    pivot_wider(names_from = param) %>%  
-  
-    # Join other (non asset-class-specific) parameters  
-    left_join(
-      file.path('./config/tax_law/', scenario_info$tax_law, 'other.csv') %>% 
-        read_csv(show_col_types = F), 
-      by = 'year'
-    )
+    # Get unique set of filenames for parameter settings 
+    settings = tax_law[param] %>% distinct() %>% deframe()
     
-  # Extend series beyond last specified tax law year (assume constant policy)
-  if (max(scenario_info$years) > max(tax_law$year)) { 
-    tax_law %<>% 
-      bind_rows(
-        tax_law %>% 
-          filter(year == max(year)) %>% 
-          select(-year) %>% 
-          expand_grid(year = (max(tax_law$year) + 1):max(scenario_info$years)) 
+    # Read all parameter setting files...
+    params[[length(params) + 1]] = settings %>% 
+      map(
+        .f = ~ file.path('./config/tax_law/params/', param, paste0(.x, '.csv')) %>% 
+          read_csv(show_col_types = F) %>% 
+          mutate(param = param, param_setting = as.character(.x), .before = everything())  
+      ) %>% 
+      
+      # Reshape long in asset class
+      bind_rows() %>% 
+      pivot_longer(
+        cols      = -c(industry, param, param_setting), 
+        names_to  = 'asset_class', 
+        values_to = 'value'
       )
+    
   }
   
+  # Bind into single dataframe
+  params = bind_rows(params)
+  
+  # Set up structure: asset X industry X year X legal type X param X setting 
+  tax_law = params %>% 
+    distinct(asset_class, industry) %>% 
+    expand_grid(tax_law) %>% 
+    pivot_longer(
+      cols             = c(B, L, bonus, s179), 
+      names_to         = 'param', 
+      values_to        = 'param_setting',
+      values_transform = as.character
+    ) %>% 
+    
+    # Join parameter setting values 
+    left_join(params, by = c('param', 'param_setting', 'asset_class', 'industry')) %>% 
+    select(-param_setting) %>% 
+    pivot_wider(names_from = param)
+    
+
+  # TODO Extend series beyond last specified tax law year (assume constant policy)
+  # if (max(scenario_info$years) > max(tax_law$year)) { 
+  #   tax_law %<>% 
+  #     bind_rows(
+  #       tax_law %>% 
+  #         filter(year == max(year)) %>% 
+  #         select(-year) %>% 
+  #         expand_grid(year = (max(tax_law$year) + 1):max(scenario_info$years)) 
+  #     )
+  # }
+  
   tax_law %>% 
-    arrange(year, asset_class) %>% 
+    arrange(year, asset_class, industry) %>% 
     return()
 }
 
