@@ -21,7 +21,7 @@ build_tax_law = function(scenario_info) {
 
   # Read core tax law file
   tax_law = file.path('./config/tax_law/', paste0(scenario_info$tax_law, '.csv')) %>% 
-    read_csv(show_col_types = F) 
+    read_csv(show_col_types = F)
 
   # For each multi-dimension parameter...
   params = list()
@@ -45,13 +45,12 @@ build_tax_law = function(scenario_info) {
         names_to  = 'asset_class', 
         values_to = 'value'
       )
-    
   }
   
   # Bind into single dataframe
   params = bind_rows(params)
   
-  # Set up structure: asset X industry X year X legal type X param X setting 
+  # Set up structure: asset X industry X year X legal form X param X setting 
   tax_law = params %>% 
     distinct(asset_class, industry) %>% 
     expand_grid(tax_law) %>% 
@@ -67,20 +66,20 @@ build_tax_law = function(scenario_info) {
     select(-param_setting) %>% 
     pivot_wider(names_from = param)
     
-
-  # TODO Extend series beyond last specified tax law year (assume constant policy)
-  # if (max(scenario_info$years) > max(tax_law$year)) { 
-  #   tax_law %<>% 
-  #     bind_rows(
-  #       tax_law %>% 
-  #         filter(year == max(year)) %>% 
-  #         select(-year) %>% 
-  #         expand_grid(year = (max(tax_law$year) + 1):max(scenario_info$years)) 
-  #     )
-  # }
+  # Extend series beyond last specified tax law year (assume constant policy)
+  if (max(scenario_info$years) > max(tax_law$year)) {
+    tax_law %<>%
+      bind_rows(
+        tax_law %>%
+          filter(year == max(year)) %>%
+          select(-year) %>%
+          expand_grid(year = (max(tax_law$year) + 1):max(scenario_info$years))
+      )
+  }
   
   tax_law %>% 
-    arrange(year, asset_class, industry) %>% 
+    select(form, year, everything()) %>% 
+    arrange(form, year, asset_class, industry) %>% 
     return()
 }
 
@@ -110,12 +109,13 @@ build_investment_data = function(scenario_info) {
     bind_rows() %>%
     pivot_longer(
       cols      = -year, 
-      names_to  = 'asset_class', 
+      names_to  = c('asset_class', 'industry'),
+      names_sep = '[.]',
       values_to = 'investment'
     ) %>% 
   
     # Join tax law
-    left_join(tax_law, by = c('year', 'asset_class')) %>% 
+    left_join(tax_law, by = c('year', 'form', 'asset_class', 'industry')) %>% 
     
     # Filter to specified years
     filter(year %in% scenario_info$years) %>% 
