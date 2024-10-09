@@ -5,13 +5,11 @@
 # given investment projections and tax law parameters
 #----------------------------------------------------------
 
+
 calc_all_depreciation = function(investment, macro_projections) {
   
-  # Pulls number from schedule TODO
-  h = max(investment$L)
-  
-  # All possible years a deduction can be taken
-  all_years = c(unique(investment$year), (max(investment$year)+1):(max(investment$year) + h))
+  # Get all possible years a deduction can be taken
+  all_years = min(investment$year):(max(investment$year) + max(investment$L))
 
   # Parse indexation values
   indexes = macro_projections %>% 
@@ -80,11 +78,13 @@ calc_depreciation = function(investment, indexes, all_years) {
   L = ceiling(L)
   tibble(deduction_year = year:(year + L), value = c(out, deductions[L]/2)) %>%
     mutate(
+      form        = investment$form,
       year        = year, 
       asset_class = investment$asset_class, 
+      industry    = investment$industry,
       investment  = investment$investment
     ) %>% 
-    select(year, asset_class, investment, deduction_year, value) %>% 
+    select(form, year, asset_class, industry, investment, deduction_year, value) %>% 
     return()
 }
 

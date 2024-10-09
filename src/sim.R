@@ -46,7 +46,7 @@ do_scenario = function(id) {
     )
   
   # Calculate depreciation deductions by investment year and asset class
-  deductions_detailed = calc_all_depreciation(investment, macro_projections)
+  deductions_detailed = calc_all_depreciation(investment %>% filter(year == 2000:2001), macro_projections)
   
   # Post-processing
   by_deduction_year = get_by_deduction_year(deductions_detailed)
