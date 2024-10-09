@@ -100,8 +100,21 @@ build_investment_data = function(scenario_info) {
   # Build tax law
   tax_law = build_tax_law(scenario_info)
   
+  # Read C corp shares by asset class and industry 
+  ccorp_shares = read_csv('./resources/industry_crosswalk.csv', show_col_types = F) %>% 
+    left_join(
+      read_csv('./resources/ccorp_share.csv', show_col_types = F) %>% 
+        pivot_longer(
+          cols      = -standard_industry, 
+          names_to  = 'asset_class', 
+          values_to = 'ccorp_share'
+        ), 
+      by = 'standard_industry', 
+      relationship = 'many-to-many'
+    )
+  
   # Read investment projections
-  investment = c('historical.csv', 'projections.csv') %>% 
+  c('historical.csv', 'projections.csv') %>% 
     map( 
       ~ file.path(scenario_info$paths$`Investment-Projections`, .x) %>% 
           read_csv(show_col_types = F)
@@ -113,12 +126,27 @@ build_investment_data = function(scenario_info) {
       names_sep = '[.]',
       values_to = 'investment'
     ) %>% 
-  
-    # Join tax law
-    left_join(tax_law, by = c('year', 'form', 'asset_class', 'industry')) %>% 
-    
+
     # Filter to specified years
     filter(year %in% scenario_info$years) %>% 
+    
+    # Impute investment by legal form
+    left_join(ccorp_shares, by = c('industry', 'asset_class')) %>% 
+    mutate(
+      ccorp = investment * ccorp_share, 
+      pt    = investment * (1 - ccorp_share)
+    ) %>% 
+    select(-standard_industry, -ccorp_share, -investment) %>% 
+    pivot_longer(
+      cols      = c(pt, ccorp), 
+      names_to  = 'form', 
+      values_to = 'investment'
+    ) %>% 
+    select(form, everything()) %>% 
+    arrange(form) %>% 
+   
+    # Join tax law
+    left_join(tax_law, by = c('year', 'form', 'asset_class', 'industry')) %>% 
     
     # Filter out variables with no corresponding tax law info 
     # (i.e. aggregated asset class summary variables in projections)
