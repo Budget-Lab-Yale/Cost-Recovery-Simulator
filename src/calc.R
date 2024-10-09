@@ -37,10 +37,10 @@ calc_depreciation = function(investment, indexes, all_years) {
   
   # Extract values from tibble
   year    = investment$year       # Year of investment
-  L       = investment$L          # Cost recovery period
-  B       = investment$B          # Decay rate
   bonus   = investment$bonus      # Section 168(k) "bonus" depreciation rate
   s179    = investment$s179       # Share of investment eligible for section 179 expensing
+  L       = investment$L          # MACRS cost recovery period
+  macrs   = investment$macrs[[1]] # MACRS cost recovery schedule
   balance = investment$investment # Initial investment basis
   
   # Calculate balance to be depreciated after accounting for amount expensed
@@ -48,7 +48,7 @@ calc_depreciation = function(investment, indexes, all_years) {
   balance  = balance - expensed
   
   # Calculate schedule of MACRS deductions
-  deductions = calc_macrs(balance, B, L)
+  deductions = balance * macrs
   
   # Add expensed amount to schedule 
   deductions[1] = deductions[1] + expensed
@@ -91,6 +91,7 @@ calc_depreciation = function(investment, indexes, all_years) {
 
 
 calc_macrs = function(balance, B, L) {
+  
   # Binary flag to switch from Declining Balance to Straight Line deduction
   switch = F
   deductions = c()

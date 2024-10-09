@@ -66,6 +66,17 @@ build_tax_law = function(scenario_info) {
     select(-param_setting) %>% 
     pivot_wider(names_from = param)
     
+  # Precomute MACRS schedules
+  macrs = tax_law %>% 
+    distinct(B, L)
+  macrs %<>% bind_cols(
+    1:nrow(macrs) %>% 
+      map(.f = ~ calc_macrs(1, macrs$B[.x], macrs$L[.x])) %>% 
+      tibble(macrs = .)
+  )
+  tax_law %<>% 
+    left_join(macrs, by = c('B', 'L'))
+  
   # Extend series beyond last specified tax law year (assume constant policy)
   if (max(scenario_info$years) > max(tax_law$year)) {
     tax_law %<>%
