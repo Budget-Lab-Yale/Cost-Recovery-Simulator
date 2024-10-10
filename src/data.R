@@ -95,7 +95,7 @@ build_schedules = function(params) {
   #  - scenario_info (list) : scenario info object (see get_scenario_info())
   # 
   # Returns:
-  # - dataframe of schedules, long in relative time from investment year (df)
+  #  - dataframe of schedules, long in relative time from investment year (df)
   #----------------------------------------------------------------------------
   
   # Get all combos
@@ -122,19 +122,6 @@ build_investment_data = function(scenario_info) {
   # - investment data (df)
   #----------------------------------------------------------------------------
   
-  # Read C corp shares by asset class and industry 
-  ccorp_shares = read_csv('./resources/industry_crosswalk.csv', show_col_types = F) %>% 
-    left_join(
-      read_csv('./resources/ccorp_share.csv', show_col_types = F) %>% 
-        pivot_longer(
-          cols      = -standard_industry, 
-          names_to  = 'asset_class', 
-          values_to = 'ccorp_share'
-        ), 
-      by = 'standard_industry', 
-      relationship = 'many-to-many'
-    )
-  
   # Read investment projections
   c('historical.csv', 'projections.csv') %>% 
     map( 
@@ -153,7 +140,10 @@ build_investment_data = function(scenario_info) {
     filter(year %in% scenario_info$years) %>% 
     
     # Impute investment by legal form
-    left_join(ccorp_shares, by = c('industry', 'asset_class')) %>% 
+    left_join(
+      build_ccorp_shares(), 
+      by = c('industry', 'asset_class')
+    ) %>% 
     mutate(
       ccorp = investment * ccorp_share, 
       pt    = investment * (1 - ccorp_share)
@@ -188,3 +178,33 @@ build_macro_projections = function(scenario_info) {
     bind_rows() %>% 
     return()
 } 
+
+
+build_ccorp_shares = function() {
+  
+  #----------------------------------------------------------------------------
+  # TODO
+  #
+  # Parameters:
+  #  - TODO
+  # 
+  # Returns:
+  #  - TODO
+  #----------------------------------------------------------------------------
+  
+  # Read C corp shares by asset class and industry 
+  read_csv('./resources/industry_crosswalk.csv', show_col_types = F) %>% 
+    left_join(
+      read_csv('./resources/ccorp_share.csv', show_col_types = F) %>% 
+        pivot_longer(
+          cols      = -standard_industry, 
+          names_to  = 'asset_class', 
+          values_to = 'ccorp_share'
+        ), 
+      by = 'standard_industry', 
+      relationship = 'many-to-many'
+    ) 
+  
+  # TODO adjust for compositional shifts over time
+  
+}
