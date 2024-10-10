@@ -1,4 +1,9 @@
-
+#---------------------------------------------------
+# Post-processing.R
+# 
+# Contains functions to process detailed deductions
+# file for summary output
+#---------------------------------------------------
 
 
 get_by_deduction_year = function(deductions_detailed) {

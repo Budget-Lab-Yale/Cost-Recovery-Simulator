@@ -6,4 +6,4 @@ roots:
 
 dependencies:
   Investment-Projections: '/model_data/Investment-Projections/v1/2024100807/baseline'
-  Macro-Projections: '/model_data/Macro-Projections/v3/2024061815/baseline'
+  Macro-Projections: '/model_data/Macro-Projections/v3/2024100910/baseline'

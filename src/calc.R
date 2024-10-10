@@ -82,9 +82,10 @@ calc_depreciation = function(investment, indexes, all_years) {
       year        = year, 
       asset_class = investment$asset_class, 
       industry    = investment$industry,
+      L           = investment$L,
       investment  = investment$investment
     ) %>% 
-    select(form, year, asset_class, industry, investment, deduction_year, value) %>% 
+    select(form, year, asset_class, industry, L, investment, deduction_year, value) %>% 
     return()
 }
 

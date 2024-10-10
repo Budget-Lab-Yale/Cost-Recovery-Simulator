@@ -30,21 +30,6 @@ do_scenario = function(id) {
     ) %>% 
     bind_rows()
   
-  # PLACEHOLDER: FILL IN HISTORICAL INFLATION AND YIELDS (TK IN MACRO-PROJECTIONS)
-  placeholder_series = tibble(year = 1970:2024) %>% 
-    mutate(
-      placeholder_cpiu    = 1.02 ^ (year - 1970), 
-      placeholder_cpiu    = placeholder_cpiu / placeholder_cpiu[year == 2024], 
-      placeholder_tsy_10y = 4
-    ) %>% 
-    filter(year < 2024)
-  macro_projections %<>% 
-    left_join(placeholder_series, by = 'year') %>% 
-    mutate(
-      cpiu    = if_else(year < 2024, placeholder_cpiu, cpiu), 
-      tsy_10y = if_else(year < 2024, placeholder_tsy_10y, tsy_10y)
-    )
-  
   # Calculate depreciation deductions by investment year and asset class
   deductions_detailed = calc_all_depreciation(investment, macro_projections)
   
