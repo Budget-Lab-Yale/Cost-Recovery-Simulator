@@ -8,93 +8,99 @@
 
 calc_all_depreciation = function(investment, macro_projections) {
   
-  # Get all possible years a deduction can be taken
-  all_years = min(investment$year):(max(investment$year) + max(investment$L))
-
   # Parse indexation values
   indexes = macro_projections %>% 
-    mutate(inflation = cpiu / lag(cpiu) - 1, timevalue = tsy_10y / 100) %>% 
-    select(year, inflation, timevalue)
-  
-  # Iterate over each asset class-year observation
-  1:nrow(investment) %>%
-    
-    # Calculate depreciation deductions
-    map(.f = ~ calc_depreciation(investment[.x,], indexes, all_years)) %>%
-    bind_rows() %>%
-    
-    # Reshape wide in deduction year
-    pivot_wider(names_from = deduction_year) %>% 
-    
-    # Replace NAs (no deduction that year) with 0s
-    mutate(across(.cols = -year, .fns = ~ replace_na(., 0))) %>% 
-    return()
-}
-
-
-
-calc_depreciation = function(investment, indexes, all_years) {
-  
-  # Extract values from tibble
-  year    = investment$year       # Year of investment
-  bonus   = investment$bonus      # Section 168(k) "bonus" depreciation rate
-  s179    = investment$s179       # Share of investment eligible for section 179 expensing
-  L       = investment$L          # MACRS cost recovery period
-  macrs   = investment$macrs[[1]] # MACRS cost recovery schedule
-  balance = investment$investment # Initial investment basis
-  
-  # Calculate balance to be depreciated after accounting for amount expensed
-  expensed = balance * (s179 + bonus * (1 - s179))
-  balance  = balance - expensed
-  
-  # Calculate schedule of MACRS deductions
-  deductions = balance * macrs
-  
-  # Add expensed amount to schedule 
-  deductions[1] = deductions[1] + expensed
-  
-  # Account for half-year convention (assume all investment occurs in middle of the year)
-  out = (deductions / 2) + lag(deductions / 2, default = 0)
-  
-  # Adjust for inflation/time value if specified under law
-  if (investment$indexation %in% c('inflation', 'timevalue')) {
-    
-    # Calculate and apply path of indexation adjustment factors
-    index_years = year:(year + length(out) - 1)
-    index_adjustment = indexes %>% 
-      filter(year %in% index_years) %>% 
-      select(value = !!investment$indexation) %>% 
-      mutate(value = cumprod(1 + lag(value, default = 0))) %>% 
-      deframe()
-    out = out * index_adjustment
-    
-  } else {
-    if (investment$indexation != 'none') {
-      stop('Invalid tax law parameter value for indexation')
-    }
-  }
-  
-  # Construct output row and return
-  L = ceiling(L)
-  tibble(deduction_year = year:(year + L), value = c(out, deductions[L]/2)) %>%
     mutate(
-      form        = investment$form,
-      year        = year, 
-      asset_class = investment$asset_class, 
-      industry    = investment$industry,
-      L           = investment$L,
-      investment  = investment$investment
+      inflation = cpiu / lag(cpiu) - 1, 
+      timevalue = tsy_10y / 100,
+      none      = 0
     ) %>% 
-    select(form, year, asset_class, industry, L, investment, deduction_year, value) %>% 
+    select(year, inflation, timevalue, none)
+  
+  # For each investment year...
+  output = list()
+  for (yr in unique(investment$year)) {
+    
+    # Calculate indexation adjustment factors
+    index_adjustment = indexes %>% 
+      filter(year >= yr) %>%
+      rename(deduction_year = year) %>%
+      mutate(
+        across(
+          .cols = -deduction_year, 
+          .fns  = ~ cumprod(1 + lag(., default = 0))
+        )
+      ) %>% 
+      pivot_longer(
+        cols      = -deduction_year, 
+        names_to  = 'indexation', 
+        values_to = 'factor'
+      )
+    
+    # Filter to this year only
+    investment %>% 
+      filter(year == yr) %>% 
+      
+      # Join tax law parameters and associated depreciation schedules 
+      left_join(tax_law$params, by = c('form', 'year', 'asset_class', 'industry')) %>% 
+      expand_grid(t = 1:max(tax_law$schedules$t)) %>% 
+      left_join(tax_law$schedules, by = c('B', 'L', 'bonus', 's179', 't')) %>% 
+      
+      # Calculate depreciation deductions
+      filter(share > 0) %>%
+      mutate(deduction = investment * share) %>% 
+      
+      # Adjust for inflation/time value if specified
+      mutate(deduction_year = year + t - 1) %>%
+      left_join(index_adjustment, by = c('deduction_year', 'indexation')) %>% 
+      mutate(deduction = deduction * factor)
+          
+      # Reshape wide in deduction year(saves memory)
+      select(year, form, asset_class, industry, investment, deduction_year, deduction) %>% 
+      pivot_wider(
+        names_from  = deduction_year, 
+        values_from = deduction
+      )
+  }
+   
+  # Bind years together and replace NAs (no deduction that year) with 0s
+  output %>% 
+    bind_rows() %>%
+    mutate(across(.cols = everything(), .fns = ~ replace_na(., 0))) %>% 
     return()
 }
 
 
 
-calc_macrs = function(balance, B, L) {
+calc_schedule = function(max_t, B, L, bonus, s179) {
+  
+  # Calculate amount avilable for immediate expensing
+  expensed = s179 + bonus * (1 - s179)
+  
+  # Calculate remaining MACRS schedule and add in expensed amount
+  schedule    = (1 - expensed) * calc_macrs(B, L)
+  schedule[1] = schedule[1] + expensed
+
+  # Account for half-year convention (assume all investment occurs in middle of the year)
+  schedule = c(schedule / 2, 0) + c(0, schedule / 2)
+
+  # Return output in df format
+  tibble(
+    t     = 1:ceiling(max_t), 
+    share = c(schedule, rep(0, ceiling(max_t) - length(schedule)))
+  ) %>% 
+  mutate(B = B, L = L, bonus = bonus, s179 = s179, .before = everything()) %>% 
+  return()
+
+}
+
+
+
+calc_macrs = function(B, L) {
   
   # Binary flag to switch from Declining Balance to Straight Line deduction
   switch = F
+  balance = 1
   deductions = c()
   
   for(i in 1:ceiling(L)) {
@@ -121,13 +127,18 @@ calc_macrs = function(balance, B, L) {
   return(deductions)
 }
 
+
+
 declining_balance = function(balance, B, L) {
   d_balance = balance * (1 - B/L)
   return(c(d_balance, balance - d_balance))
 }
 
+
+
 straight_line = function(balance, L) {
   s_balance = balance - 1/L
   return(c(s_balance, balance - s_balance))
 }
+
 

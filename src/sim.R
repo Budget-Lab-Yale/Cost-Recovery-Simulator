@@ -20,15 +20,16 @@ do_scenario = function(id) {
   # Get scenario info
   scenario_info = get_scenario_info(id)
   
+  # Build tax law and associated schedules 
+  tax_law           = list()
+  tax_law$params    = build_tax_law(scenario_info)
+  tax_law$schedules = build_schedules(tax_law$params)
+  
   # Build investment data
   investment = build_investment_data(scenario_info)
   
-  # Read macro projections
-  macro_projections = c('historical.csv', 'projections.csv') %>% 
-    map(.f = ~ file.path(scenario_info$paths$`Macro-Projections`, .x) %>% 
-          read_csv(show_col_types = F)
-    ) %>% 
-    bind_rows()
+  # Read macro projections data
+  macro_projections = build_macro_projections(scenario_info)
   
   # Calculate depreciation deductions by investment year and asset class
   deductions_detailed = calc_all_depreciation(investment, macro_projections)

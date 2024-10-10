@@ -65,18 +65,7 @@ build_tax_law = function(scenario_info) {
     left_join(params, by = c('param', 'param_setting', 'asset_class', 'industry')) %>% 
     select(-param_setting) %>% 
     pivot_wider(names_from = param)
-    
-  # Precomute MACRS schedules
-  macrs = tax_law %>% 
-    distinct(B, L)
-  macrs %<>% bind_cols(
-    1:nrow(macrs) %>% 
-      map(.f = ~ calc_macrs(1, macrs$B[.x], macrs$L[.x])) %>% 
-      tibble(macrs = .)
-  )
-  tax_law %<>% 
-    left_join(macrs, by = c('B', 'L'))
-  
+
   # Extend series beyond last specified tax law year (assume constant policy)
   if (max(scenario_info$years) > max(tax_law$year)) {
     tax_law %<>%
@@ -96,6 +85,25 @@ build_tax_law = function(scenario_info) {
 
 
 
+build_schedules = function(params) {
+  
+  schedules = params %>% 
+    distinct(B, L, bonus, s179) 
+  
+  1:nrow(schedules) %>% 
+    map(.f = ~ calc_schedule(
+      max_t = max(ceiling(schedules$L) + 1), 
+      B     = schedules$B[.x], 
+      L     = schedules$L[.x], 
+      bonus = schedules$bonus[.x], 
+      s179  = schedules$s179[.x]
+      )
+    ) %>% 
+    bind_rows() %>% 
+    return()
+}
+
+
 build_investment_data = function(scenario_info) {
   
   #----------------------------------------------------------------------------
@@ -107,9 +115,6 @@ build_investment_data = function(scenario_info) {
   # Returns:
   # - investment + tax law dataframe (df)
   #----------------------------------------------------------------------------
-  
-  # Build tax law
-  tax_law = build_tax_law(scenario_info)
   
   # Read C corp shares by asset class and industry 
   ccorp_shares = read_csv('./resources/industry_crosswalk.csv', show_col_types = F) %>% 
@@ -153,15 +158,15 @@ build_investment_data = function(scenario_info) {
       names_to  = 'form', 
       values_to = 'investment'
     ) %>% 
-    select(form, everything()) %>% 
-    arrange(form) %>% 
-   
-    # Join tax law
-    left_join(tax_law, by = c('year', 'form', 'asset_class', 'industry')) %>% 
-    
-    # Filter out variables with no corresponding tax law info 
-    # (i.e. aggregated asset class summary variables in projections)
-    filter(asset_class %in% unique(tax_law$asset_class)) %>%
+    select(year, form, everything()) %>% 
+    arrange(year, form) %>% 
     return()
 }
 
+
+build_macro_projections = function(scenario_info) { 
+  c('historical.csv', 'projections.csv') %>% 
+    map(.f = ~ read_csv(file.path(scenario_info$paths$`Macro-Projections`, .x), show_col_types = F)) %>% 
+    bind_rows() %>% 
+    return()
+} 
