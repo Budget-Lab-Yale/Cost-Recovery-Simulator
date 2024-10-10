@@ -9,14 +9,14 @@
 build_tax_law = function(scenario_info) {
   
   #----------------------------------------------------------------------------
-  # Creates tax law dataframe based on four input files. Extends series 
-  # beyond last given year if specified in runscripts.
+  # Creates tax law parameters dataframe. Extends series beyond last given 
+  # year if specified in runscripts.
   #
   # Parameters:
   #  - scenario_info (list) : scenario info object (see get_scenario_info())
   # 
   # Returns:
-  # - tax law dataframe (df)
+  # - tax law parameters dataframe (df)
   #----------------------------------------------------------------------------
 
   # Read core tax law file
@@ -87,33 +87,39 @@ build_tax_law = function(scenario_info) {
 
 build_schedules = function(params) {
   
-  schedules = params %>% 
-    distinct(B, L, bonus, s179) 
-  
-  1:nrow(schedules) %>% 
-    map(.f = ~ calc_schedule(
-      max_t = max(ceiling(schedules$L) + 1), 
-      B     = schedules$B[.x], 
-      L     = schedules$L[.x], 
-      bonus = schedules$bonus[.x], 
-      s179  = schedules$s179[.x]
-      )
-    ) %>% 
-    bind_rows() %>% 
-    return()
-}
-
-
-build_investment_data = function(scenario_info) {
-  
   #----------------------------------------------------------------------------
-  # Reads investment data and joins tax law.
+  # Builds cost recovery schedules for all combinations of B, L, bonus, and 
+  # s179.
   #
   # Parameters:
   #  - scenario_info (list) : scenario info object (see get_scenario_info())
   # 
   # Returns:
-  # - investment + tax law dataframe (df)
+  # - dataframe of schedules, long in relative time from investment year (df)
+  #----------------------------------------------------------------------------
+  
+  # Get all combos
+  params %>% 
+    distinct(B, L, bonus, s179) %>% 
+    as.list() %>% 
+    pmap(calc_schedule, max_t = max(params$L) + 1) %>% 
+    bind_rows() %>% 
+    return()
+}
+
+
+
+build_investment_data = function(scenario_info) {
+  
+  #----------------------------------------------------------------------------
+  # Reads investment data (historical and projections) and puts it into long 
+  # format. 
+  #
+  # Parameters:
+  #  - scenario_info (list) : scenario info object (see get_scenario_info())
+  # 
+  # Returns:
+  # - investment data (df)
   #----------------------------------------------------------------------------
   
   # Read C corp shares by asset class and industry 
@@ -164,7 +170,19 @@ build_investment_data = function(scenario_info) {
 }
 
 
+
 build_macro_projections = function(scenario_info) { 
+  
+  #----------------------------------------------------------------------------
+  # Reads macro projections data (historical and projections). 
+  #
+  # Parameters:
+  #  - scenario_info (list) : scenario info object (see get_scenario_info())
+  # 
+  # Returns:
+  # - macro projections data (df)
+  #----------------------------------------------------------------------------
+  
   c('historical.csv', 'projections.csv') %>% 
     map(.f = ~ read_csv(file.path(scenario_info$paths$`Macro-Projections`, .x), show_col_types = F)) %>% 
     bind_rows() %>% 

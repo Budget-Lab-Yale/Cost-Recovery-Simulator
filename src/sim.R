@@ -32,7 +32,7 @@ do_scenario = function(id) {
   macro_projections = build_macro_projections(scenario_info)
   
   # Calculate depreciation deductions by investment year and asset class
-  deductions_detailed = calc_all_depreciation(investment, macro_projections)
+  deductions_detailed = calc_depreciation(investment, macro_projections)
   
   # Post-processing
   by_deduction_year = get_by_deduction_year(deductions_detailed)
