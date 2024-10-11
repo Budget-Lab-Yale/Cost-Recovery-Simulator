@@ -20,33 +20,19 @@ do_scenario = function(id) {
   # Get scenario info
   scenario_info = get_scenario_info(id)
   
+  # Build tax law and associated schedules 
+  tax_law           = list()
+  tax_law$params    = build_tax_law(scenario_info)
+  tax_law$schedules = build_schedules(tax_law$params)
+  
   # Build investment data
   investment = build_investment_data(scenario_info)
   
-  # Read macro projections
-  macro_projections = c('historical.csv', 'projections.csv') %>% 
-    map(.f = ~ file.path(scenario_info$paths$`Macro-Projections`, .x) %>% 
-          read_csv(show_col_types = F)
-    ) %>% 
-    bind_rows()
-  
-  # PLACEHOLDER: FILL IN HISTORICAL INFLATION AND YIELDS (TK IN MACRO-PROJECTIONS)
-  placeholder_series = tibble(year = 1970:2024) %>% 
-    mutate(
-      placeholder_cpiu    = 1.02 ^ (year - 1970), 
-      placeholder_cpiu    = placeholder_cpiu / placeholder_cpiu[year == 2024], 
-      placeholder_tsy_10y = 4
-    ) %>% 
-    filter(year < 2024)
-  macro_projections %<>% 
-    left_join(placeholder_series, by = 'year') %>% 
-    mutate(
-      cpiu    = if_else(year < 2024, placeholder_cpiu, cpiu), 
-      tsy_10y = if_else(year < 2024, placeholder_tsy_10y, tsy_10y)
-    )
+  # Read macro projections data
+  macro_projections = build_macro_projections(scenario_info)
   
   # Calculate depreciation deductions by investment year and asset class
-  deductions_detailed = calc_all_depreciation(investment, macro_projections)
+  deductions_detailed = calc_depreciation(investment, macro_projections)
   
   # Post-processing
   by_deduction_year = get_by_deduction_year(deductions_detailed)

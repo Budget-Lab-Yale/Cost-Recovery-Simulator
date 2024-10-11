@@ -5,127 +5,211 @@
 # given investment projections and tax law parameters
 #----------------------------------------------------------
 
-calc_all_depreciation = function(investment, macro_projections) {
-  
-  # Pulls number from schedule TODO
-  h = max(investment$L)
-  
-  # All possible years a deduction can be taken
-  all_years = c(unique(investment$year), (max(investment$year)+1):(max(investment$year) + h))
 
+calc_depreciation = function(investment, macro_projections, tax_law) {
+  
+  #----------------------------------------------------------------------------
+  # Calculates depreciation deductions for all projected investment for all
+  # years. Iterates over year to deal with RAM limitations. 
+  #
+  # Parameters:
+  #  - investment        (df) : detailed investment (see build_investment())
+  #  - macro_projections (df) : macroeconomic data
+  #  - tax_law          (lst) : list containing tax law params and schedules
+  # 
+  # Returns:
+  #  - tibble with deductions attached, wide in deduction year (df)
+  #----------------------------------------------------------------------------
+  
   # Parse indexation values
   indexes = macro_projections %>% 
-    mutate(inflation = cpiu / lag(cpiu) - 1, timevalue = tsy_10y / 100) %>% 
-    select(year, inflation, timevalue)
-  
-  # Iterate over each asset class-year observation
-  1:nrow(investment) %>%
-    
-    # Calculate depreciation deductions
-    map(.f = ~ calc_depreciation(investment[.x,], indexes, all_years)) %>%
-    bind_rows() %>%
-    
-    # Reshape wide in deduction year
-    pivot_wider(names_from = deduction_year) %>% 
-    
-    # Replace NAs (no deduction that year) with 0s
-    mutate(across(.cols = -year, .fns = ~ replace_na(., 0))) %>% 
-    return()
-}
-
-
-
-calc_depreciation = function(investment, indexes, all_years) {
-  
-  # Extract values from tibble
-  year    = investment$year       # Year of investment
-  L       = investment$L          # Cost recovery period
-  B       = investment$B          # Decay rate
-  bonus   = investment$bonus      # Section 168(k) "bonus" depreciation rate
-  s179    = investment$s179       # Share of investment eligible for section 179 expensing
-  balance = investment$investment # Initial investment basis
-  
-  # Calculate balance to be depreciated after accounting for amount expensed
-  expensed = balance * (s179 + bonus * (1 - s179))
-  balance  = balance - expensed
-  
-  # Calculate schedule of MACRS deductions
-  deductions = calc_macrs(balance, B, L)
-  
-  # Add expensed amount to schedule 
-  deductions[1] = deductions[1] + expensed
-  
-  # Account for half-year convention (assume all investment occurs in middle of the year)
-  out = (deductions / 2) + lag(deductions / 2, default = 0)
-  
-  # Adjust for inflation/time value if specified under law
-  if (investment$indexation %in% c('inflation', 'timevalue')) {
-    
-    # Calculate and apply path of indexation adjustment factors
-    index_years = year:(year + length(out) - 1)
-    index_adjustment = indexes %>% 
-      filter(year %in% index_years) %>% 
-      select(value = !!investment$indexation) %>% 
-      mutate(value = cumprod(1 + lag(value, default = 0))) %>% 
-      deframe()
-    out = out * index_adjustment
-    
-  } else {
-    if (investment$indexation != 'none') {
-      stop('Invalid tax law parameter value for indexation')
-    }
-  }
-  
-  # Construct output row and return
-  L = ceiling(L)
-  tibble(deduction_year = year:(year + L), value = c(out, deductions[L]/2)) %>%
     mutate(
-      year        = year, 
-      asset_class = investment$asset_class, 
-      investment  = investment$investment
+      inflation = cpiu / lag(cpiu) - 1, 
+      timevalue = tsy_10y / 100,
+      none      = 0
     ) %>% 
-    select(year, asset_class, investment, deduction_year, value) %>% 
+    select(year, inflation, timevalue, none)
+  
+  # For each investment year...
+  output = list()
+  for (yr in unique(investment$year)) {
+    
+    # Calculate indexation adjustment factors
+    index_adjustment = indexes %>% 
+      filter(year >= yr) %>%
+      rename(deduction_year = year) %>%
+      mutate(
+        across(
+          .cols = -deduction_year, 
+          .fns  = ~ cumprod(1 + lag(., default = 0))
+        )
+      ) %>% 
+      pivot_longer(
+        cols      = -deduction_year, 
+        names_to  = 'indexation', 
+        values_to = 'factor'
+      )
+    
+    # Filter to this year only
+    investment %>% 
+      filter(year == yr) %>% 
+      
+      # Join tax law parameters and associated depreciation schedules 
+      left_join(tax_law$params, by = c('form', 'year', 'asset_class', 'industry')) %>% 
+      expand_grid(t = 1:max(tax_law$schedules$t)) %>% 
+      left_join(tax_law$schedules, by = c('B', 'L', 'bonus', 's179', 't')) %>% 
+      
+      # Calculate depreciation deductions
+      filter(share > 0) %>%
+      mutate(deduction = investment * share) %>% 
+      
+      # Adjust for inflation/time value if specified
+      mutate(deduction_year = year + t - 1) %>%
+      left_join(index_adjustment, by = c('deduction_year', 'indexation')) %>% 
+      mutate(deduction = deduction * factor)
+          
+      # Reshape wide in deduction year(saves memory)
+      select(year, form, asset_class, industry, L, investment, deduction_year, deduction) %>% 
+      pivot_wider(
+        names_from  = deduction_year, 
+        values_from = deduction
+      )
+  }
+   
+  # Bind years together and replace NAs (no deduction that year) with 0s
+  output %>% 
+    bind_rows() %>%
+    mutate(across(.cols = everything(), .fns = ~ replace_na(., 0))) %>% 
     return()
 }
 
 
 
-calc_macrs = function(balance, B, L) {
-  # Binary flag to switch from Declining Balance to Straight Line deduction
+calc_schedule = function(B, L, bonus, s179, max_t) {
+  
+  #----------------------------------------------------------------------------
+  # Calculates schedule of deductions give MACRS, bonus, and 179 params.
+  #
+  # Parameters:
+  #  - B     (dbl) : decay rate factor
+  #  - L     (dbl) : cost recovery life
+  #  - bonus (dbl) : bonus depreciation rate
+  #  - s179  (dbl) : share of investment eligible for section 179 expensing
+  #  - max_t (dbl) : number of years for which to show series 
+  # 
+  # Returns:
+  #  - tibble of schedule with parameters, long in relative year (df)
+  #----------------------------------------------------------------------------
+  
+  # Calculate amount avilable for immediate expensing
+  expensed = s179 + bonus * (1 - s179)
+  
+  # Calculate remaining MACRS schedule and add in expensed amount
+  schedule    = (1 - expensed) * calc_macrs(B, L)
+  schedule[1] = schedule[1] + expensed
+
+  # Account for half-year convention (assume all investment occurs in middle of the year)
+  schedule = c(schedule / 2, 0) + c(0, schedule / 2)
+
+  # Return output in df format
+  tibble(
+    t     = 1:ceiling(max_t), 
+    share = c(schedule, rep(0, ceiling(max_t) - length(schedule)))
+  ) %>% 
+  mutate(B = B, L = L, bonus = bonus, s179 = s179, .before = everything()) %>% 
+  return()
+
+}
+
+
+
+calc_macrs = function(B, L) {
+  
+  #----------------------------------------------------------------------------
+  # Calculates MACRS schedule given decay rate and userful life params.
+  #
+  # Parameters:
+  #  - B (dbl) : decay rate factor
+  #  - L (dbl) : cost recovery life
+  # 
+  # Returns:
+  #  - vector of deductions (dbl[])
+  #----------------------------------------------------------------------------
+  
+  # Binary flag to switch from declining balance method to straight line method
   switch = F
+  balance = 1
   deductions = c()
   
-  for(i in 1:ceiling(L)) {
+  # Loop over periods
+  for (t in 1:ceiling(L)) {
+    
+    # Get straight line balance
     s_balance = straight_line(balance, L)
     
-    if(!switch) {
-      # Calculate and append Declining Balance deduction
-      d_balance = declining_balance(balance, B, L)
-      balance = d_balance[1]
+    # If straight line still hasn't been triggered... 
+    if (!switch) {
+      
+      # Calculate and append declining balance deduction
+      d_balance  = declining_balance(balance, B, L)
+      balance    = d_balance[1]
       deductions = c(deductions, d_balance[2])
       
-      # Check if Straight Line deduction becomes preferred
-      if(s_balance[2] > d_balance[2]) {
+      # Check if straight line deduction has been triggered (i.e. is larger)
+      if (s_balance[2] > d_balance[2]) {
         switch = T
-        num = sum(deductions)
-        denom = L - i
+        num    = sum(deductions)
+        denom  = L - t
       } 
+      
+    # ...otherwise, apply straight line method
     } else {
-      # Apply simplified straightline once more valuable
-      deductions = c(deductions, (1 - num)/denom)
+      deductions = c(deductions, (1 - num) / denom)
     }
   }
   
   return(deductions)
 }
 
+
+
 declining_balance = function(balance, B, L) {
-  d_balance = balance * (1 - B/L)
+  
+  #----------------------------------------------------------------------------
+  # Helper function to calculate declining next-period deduction under 
+  # declining balance convention.
+  #
+  # Parameters:
+  #  - balance (dbl) : existing balance
+  #  - B       (dbl) : decay rate factor
+  #  - L       (dbl) : cost recovery life
+  # 
+  # Returns:
+  #  - tuple of new balance, next-period deduction (dbl[])
+  #----------------------------------------------------------------------------
+  
+  d_balance = balance * (1 - B / L)
   return(c(d_balance, balance - d_balance))
 }
 
+
+
 straight_line = function(balance, L) {
-  s_balance = balance - 1/L
+  
+  #----------------------------------------------------------------------------
+  # Helper function to calculate declining next-period deduction under 
+  # straight line convention.
+  #
+  # Parameters:
+  #  - balance (dbl) : existing balance
+  #  - L       (dbl) : cost recovery life
+  # 
+  # Returns:
+  #  - tuple of new balance, next-period deduction (dbl[])
+  #----------------------------------------------------------------------------
+
+  s_balance = balance - 1 / L
   return(c(s_balance, balance - s_balance))
 }
+
 
