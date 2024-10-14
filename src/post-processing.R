@@ -109,7 +109,6 @@ calc_recovery_ratios = function(deductions_detailed, macro_projections, spread =
   }
   return(
     list(
-      detailed       = detailed, 
       overall        = get_summary(),
       by_form        = get_summary(form),
       by_asset_class = get_summary(asset_class),

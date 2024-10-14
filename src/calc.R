@@ -51,7 +51,7 @@ calc_depreciation = function(investment, macro_projections, tax_law) {
       )
     
     # Filter to this year only
-    investment %>% 
+    output[[length(output) + 1]] = investment %>% 
       filter(year == yr) %>% 
       
       # Join tax law parameters and associated depreciation schedules 
@@ -66,7 +66,7 @@ calc_depreciation = function(investment, macro_projections, tax_law) {
       # Adjust for inflation/time value if specified
       mutate(deduction_year = year + t - 1) %>%
       left_join(index_adjustment, by = c('deduction_year', 'indexation')) %>% 
-      mutate(deduction = deduction * factor)
+      mutate(deduction = deduction * factor) %>% 
           
       # Reshape wide in deduction year(saves memory)
       select(year, form, asset_class, industry, L, investment, deduction_year, deduction) %>% 
@@ -108,9 +108,6 @@ calc_schedule = function(B, L, bonus, s179, max_t) {
   schedule    = (1 - expensed) * calc_macrs(B, L)
   schedule[1] = schedule[1] + expensed
 
-  # Account for half-year convention (assume all investment occurs in middle of the year)
-  schedule = c(schedule / 2, 0) + c(0, schedule / 2)
-
   # Return output in df format
   tibble(
     t     = 1:ceiling(max_t), 
@@ -136,80 +133,26 @@ calc_macrs = function(B, L) {
   #  - vector of deductions (dbl[])
   #----------------------------------------------------------------------------
   
-  # Binary flag to switch from declining balance method to straight line method
-  switch = F
-  balance = 1
-  deductions = c()
+  # Calculate half-year DB schedule 
+  db_bal   = cumprod(rep(1 - B / L, L))
+  db_whole = lag(db_bal, default = 1) - db_bal 
+  db_half  = c(db_whole / 2, 0) + c(0, db_whole / 2)
   
-  # Loop over periods
-  for (t in 1:ceiling(L)) {
-    
-    # Get straight line balance
-    s_balance = straight_line(balance, L)
-    
-    # If straight line still hasn't been triggered... 
-    if (!switch) {
-      
-      # Calculate and append declining balance deduction
-      d_balance  = declining_balance(balance, B, L)
-      balance    = d_balance[1]
-      deductions = c(deductions, d_balance[2])
-      
-      # Check if straight line deduction has been triggered (i.e. is larger)
-      if (s_balance[2] > d_balance[2]) {
-        switch = T
-        num    = sum(deductions)
-        denom  = L - t
-      } 
-      
-    # ...otherwise, apply straight line method
-    } else {
-      deductions = c(deductions, (1 - num) / denom)
-    }
-  }
+  # Calculate half-year SL schedule
+  sl_whole = rep(1 / L, L)
+  sl_half  = c(sl_whole / 2, 0) + c(0, sl_whole / 2)
   
-  return(deductions)
-}
-
-
-
-declining_balance = function(balance, B, L) {
+  # Determine period in which SL becomes more generous -- and remaining balance at that point
+  switch = min(which(sl_half > db_half)) 
+  switch = if_else(is.infinite(switch), 1, switch) + if_else(L == 10, 1, 0)  # no idea why 10 year is slightly different than every other class
+  remaining_bal = 1 - sum(db_half[1:switch])
   
-  #----------------------------------------------------------------------------
-  # Helper function to calculate declining next-period deduction under 
-  # declining balance convention.
-  #
-  # Parameters:
-  #  - balance (dbl) : existing balance
-  #  - B       (dbl) : decay rate factor
-  #  - L       (dbl) : cost recovery life
-  # 
-  # Returns:
-  #  - tuple of new balance, next-period deduction (dbl[])
-  #----------------------------------------------------------------------------
-  
-  d_balance = balance * (1 - B / L)
-  return(c(d_balance, balance - d_balance))
-}
+  # Calculate remaining SL schedule
+  remaining_t  = L - switch + 0.5
+  sl_remaining = (remaining_bal / remaining_t) / c(rep(1, remaining_t), 2)
 
-
-
-straight_line = function(balance, L) {
-  
-  #----------------------------------------------------------------------------
-  # Helper function to calculate declining next-period deduction under 
-  # straight line convention.
-  #
-  # Parameters:
-  #  - balance (dbl) : existing balance
-  #  - L       (dbl) : cost recovery life
-  # 
-  # Returns:
-  #  - tuple of new balance, next-period deduction (dbl[])
-  #----------------------------------------------------------------------------
-
-  s_balance = balance - 1 / L
-  return(c(s_balance, balance - s_balance))
+  # Piece together and return
+  return(c(db_half[1:switch], sl_remaining))
 }
 
 
