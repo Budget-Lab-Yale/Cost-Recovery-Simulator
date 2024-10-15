@@ -36,6 +36,7 @@ get_by_deduction_year = function(scenario_info, deductions_detailed) {
       names_transform = as.integer, 
       values_to       = 'deductions'
     ) %>% 
+    filter(deduction_year <= max(scenario_info$years)) %>% 
     write_csv(
       file.path(scenario_info$paths$output, 'totals', 'by_deduction_year.csv')
     )
@@ -90,7 +91,7 @@ calc_recovery_ratios = function(scenario_info, deductions_detailed,
       names_transform = as.integer,
       values_to       = 'deductions'
     ) %>% 
-    filter(deduction_year >= year) %>% 
+    filter(deduction_year >= year, deduction_year <= max(scenario_info$years)) %>% 
     
     # Join risk-free rate and calculate discount rate
     left_join(
@@ -120,4 +121,3 @@ calc_recovery_ratios = function(scenario_info, deductions_detailed,
     )
 }
   
-

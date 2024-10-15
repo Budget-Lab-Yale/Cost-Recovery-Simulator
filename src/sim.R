@@ -42,5 +42,4 @@ do_scenario = function(id) {
   calc_recovery_ratios(scenario_info, deductions_detailed, macro_projections, form,        0.02)
   calc_recovery_ratios(scenario_info, deductions_detailed, macro_projections, asset_class, 0.02)
   calc_recovery_ratios(scenario_info, deductions_detailed, macro_projections, industry,    0.02)
-  
 }
