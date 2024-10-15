@@ -21,6 +21,7 @@ output_root = file.path(platform_defaults$roots$output, time_stamp)
 dir.create(output_root)
 
 
+
 get_scenario_info = function(scenario_id) { 
   
   #----------------------------------------------------------------------------

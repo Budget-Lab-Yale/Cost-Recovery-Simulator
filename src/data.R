@@ -85,22 +85,31 @@ build_tax_law = function(scenario_info) {
 
 
 
-build_schedules = function(params) {
+build_schedules = function(params, expensing_takeup) {
   
   #----------------------------------------------------------------------------
-  # Builds cost recovery schedules for all combinations of B, L, bonus, and 
-  # s179.
+  # Builds cost recovery schedules for all combinations of B, L, bonus, s179, 
+  # and bonus/179 takeup rates. 
   #
   # Parameters:
-  #  - scenario_info (list) : scenario info object (see get_scenario_info())
+  #  - params           (df) : tax law params object (see build_tax_law())
+  #  - expensing_takeup (df) : tibble of bonus/179 takeup rates by year and 
+  #                            legal form of business
   # 
   # Returns:
   #  - dataframe of schedules, long in relative time from investment year (df)
   #----------------------------------------------------------------------------
   
-  # Get all combos
+  # Get all combos of tax law parameters
   params %>% 
     distinct(B, L, bonus, s179) %>% 
+    
+    # Add combos of takeup rates
+    expand_grid(
+      expensing_takeup %>% distinct(bonus_takeup, s179_takeup)
+    ) %>%
+    
+    # Convert to list for the arguments of calc_schedule() and apply
     as.list() %>% 
     pmap(calc_schedule, max_t = max(params$L) + 1) %>% 
     bind_rows() %>% 
@@ -109,7 +118,7 @@ build_schedules = function(params) {
 
 
 
-build_investment_data = function(scenario_info) {
+build_investment_data = function(scenario_info, assumptions) {
   
   #----------------------------------------------------------------------------
   # Reads investment data (historical and projections) and puts it into long 
@@ -117,6 +126,7 @@ build_investment_data = function(scenario_info) {
   #
   # Parameters:
   #  - scenario_info (list) : scenario info object (see get_scenario_info())
+  #  - assumptions   (list) : assumptions object (see build_assumptions())
   # 
   # Returns:
   # - investment data (df)
@@ -156,6 +166,10 @@ build_investment_data = function(scenario_info) {
     ) %>% 
     select(year, form, everything()) %>% 
     arrange(year, form) %>% 
+    
+    # Join expensing takeup rate parameters
+    left_join(assumptions$expensing_takeup, by = c('year', 'form')) %>%
+    relocate(investment, .after = everything()) %>% 
     return()
 }
 
@@ -178,6 +192,49 @@ build_macro_projections = function(scenario_info) {
     bind_rows() %>% 
     return()
 } 
+
+
+
+build_assumptions = function(scenario_info) {
+  
+  #----------------------------------------------------------------------------
+  # Reads assumption files for behavioral/economic/unmodeled policy parameters
+  # and extends series beyond last specified year if necessary.  
+  #
+  # Parameters:
+  #  - scenario_info (list) : scenario info object (see get_scenario_info())
+  # 
+  # Returns:
+  # - list of the four assumption parameters, extended (list)
+  #----------------------------------------------------------------------------
+  
+  # Loop over each parameter assumption file
+  param_names = c('expensing_takeup', 'year1_usage', 'nol_schedule', 'investment_shifting')
+  assumptions = list()
+  for (param_name in param_names) {
+    
+    # Read input file
+    param = './config/assumptions' %>% 
+      file.path(param_name, paste0(scenario_info[[param_name]], '.csv')) %>% 
+      read_csv(show_col_types = F)
+    
+    # Extend series beyond last specified year 
+    if (max(scenario_info$years) > max(param$year)) {
+      param %<>%
+        bind_rows(
+          param %>%
+            filter(year == max(year)) %>%
+            select(-year) %>%
+            expand_grid(year = (max(param$year) + 1):max(scenario_info$years))
+        ) %>% 
+        arrange(form, year)
+    }
+    
+    assumptions[[param_name]] = param
+  }
+  
+  return(assumptions)
+}
 
 
 

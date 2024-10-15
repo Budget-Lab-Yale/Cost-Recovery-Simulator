@@ -4,7 +4,7 @@ library(magrittr)
 library(yaml)
 
 # User-supplied parameters 
-runscript_id = 'tests/expensing2023'
+runscript_id = 'tests/takeup'
 
 # Source all functions and define global variables
 list.files('./src', recursive = T) %>% 
@@ -14,3 +14,5 @@ list.files('./src', recursive = T) %>%
 walk(runscript$id, do_scenario, .progress = T) 
 
 # TODO across-scenario post-processing comparisons
+
+

@@ -10,7 +10,7 @@ calc_depreciation = function(scenario_info, investment, macro_projections, tax_l
   
   #----------------------------------------------------------------------------
   # Calculates depreciation deductions for all projected investment for all
-  # years. Iterates over year to deal with RAM limitations. 
+  # years. Iterates over years to deal with RAM limitations. 
   #
   # Parameters:
   #  - scenario_info   (list) : scenario info object (see get_scenario_info())
@@ -58,7 +58,7 @@ calc_depreciation = function(scenario_info, investment, macro_projections, tax_l
       # Join tax law parameters and associated depreciation schedules 
       left_join(tax_law$params, by = c('form', 'year', 'asset_class', 'industry')) %>% 
       expand_grid(t = 1:max(tax_law$schedules$t)) %>% 
-      left_join(tax_law$schedules, by = c('B', 'L', 'bonus', 's179', 't')) %>% 
+      left_join(tax_law$schedules, by = c('B', 'L', 'bonus', 's179', 'bonus_takeup', 's179_takeup', 't')) %>% 
       
       # Calculate depreciation deductions
       filter(share > 0) %>%
@@ -69,7 +69,7 @@ calc_depreciation = function(scenario_info, investment, macro_projections, tax_l
       left_join(index_adjustment, by = c('deduction_year', 'indexation')) %>% 
       mutate(deduction = deduction * factor) %>% 
           
-      # Reshape wide in deduction year(saves memory)
+      # Reshape wide in deduction year (saves memory)
       select(year, form, asset_class, industry, L, investment, deduction_year, deduction) %>% 
       pivot_wider(
         names_from  = deduction_year, 
@@ -88,24 +88,28 @@ calc_depreciation = function(scenario_info, investment, macro_projections, tax_l
 
 
 
-calc_schedule = function(B, L, bonus, s179, max_t) {
+calc_schedule = function(B, L, bonus, s179, bonus_takeup, s179_takeup, max_t) {
   
   #----------------------------------------------------------------------------
   # Calculates schedule of deductions give MACRS, bonus, and 179 params.
   #
   # Parameters:
-  #  - B     (dbl) : decay rate factor
-  #  - L     (dbl) : cost recovery life
-  #  - bonus (dbl) : bonus depreciation rate
-  #  - s179  (dbl) : share of investment eligible for section 179 expensing
-  #  - max_t (dbl) : number of years for which to show series 
+  #  - B            (dbl) : decay rate factor
+  #  - L            (dbl) : cost recovery life
+  #  - bonus        (dbl) : bonus depreciation rate
+  #  - s179         (dbl) : share of investment eligible for 179 expensing
+  #  - bonus_takuup (dbl) : share of eligible bonus investment used
+  #  - s179_takeup  (dbl) : share of eligible 179 investment used 
+  #  - max_t        (dbl) : number of years for which to show series 
   # 
   # Returns:
   #  - tibble of schedule with parameters, long in relative year (df)
   #----------------------------------------------------------------------------
   
-  # Calculate amount avilable for immediate expensing
-  expensed = s179 + bonus * (1 - s179)
+  # Calculate amount of investment immediately expensing
+  bonus_used = bonus * bonus_takeup
+  s179_used  = s179  * s179_takeup
+  expensed   = s179_used + bonus_used * (1 - s179_used)
   
   # Calculate remaining MACRS schedule and add in expensed amount
   schedule    = (1 - expensed) * calc_macrs(B, L)
@@ -116,9 +120,16 @@ calc_schedule = function(B, L, bonus, s179, max_t) {
     t     = 1:ceiling(max_t), 
     share = c(schedule, rep(0, ceiling(max_t) - length(schedule)))
   ) %>% 
-  mutate(B = B, L = L, bonus = bonus, s179 = s179, .before = everything()) %>% 
+  mutate(
+    B            = B, 
+    L            = L, 
+    bonus        = bonus, 
+    s179         = s179, 
+    bonus_takeup = bonus_takeup, 
+    s179_takeup  = s179_takeup, 
+    .before = everything()
+  ) %>% 
   return()
-
 }
 
 
@@ -151,7 +162,7 @@ calc_macrs = function(B, L) {
   }
   
   # Determine period in which SL becomes more generous -- and remaining balance at that point
-  switch = min(which(sl_half > db_half)) + if_else(L == 10, 1, 0)  # no idea why 10 year is slightly different than every other class
+  switch = min(which(sl_half > db_half)) + if_else(B > 1 & L == 10, 1, 0)  # no idea why 10 year is slightly different than every other class
   remaining_bal = 1 - sum(db_half[1:switch])
   
   # Calculate remaining SL schedule

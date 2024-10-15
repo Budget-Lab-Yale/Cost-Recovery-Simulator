@@ -22,13 +22,16 @@ do_scenario = function(id) {
   # Get scenario info
   scenario_info = get_scenario_info(id)
   
+  # Parse assumption parameters
+  assumptions = build_assumptions(scenario_info) 
+  
   # Build tax law and associated schedules 
   tax_law           = list()
   tax_law$params    = build_tax_law(scenario_info)
-  tax_law$schedules = build_schedules(tax_law$params)
+  tax_law$schedules = build_schedules(tax_law$params, assumptions$expensing_takeup)
   
   # Build investment data
-  investment = build_investment_data(scenario_info)
+  investment = build_investment_data(scenario_info, assumptions)
   
   # Read macro projections data
   macro_projections = build_macro_projections(scenario_info)
