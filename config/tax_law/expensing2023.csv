@@ -18,6 +18,11 @@ pt,2015,macrs,macrs,50,tcja_pt,none
 pt,2016,macrs,macrs,50,tcja_pt,none
 pt,2017,macrs,macrs,50,tcja_pt,none
 pt,2018,macrs,macrs,100,tcja_pt,none
+pt,2019,macrs,macrs,100,tcja_pt,none
+pt,2020,macrs,macrs,100,tcja_pt,none
+pt,2021,macrs,macrs,100,tcja_pt,none
+pt,2022,macrs,macrs,100,tcja_pt,none
+pt,2023,macrs,macrs,expensing,tcja_pt,none
 ccorp,2000,macrs,macrs,0,tcja_ccorp,none
 ccorp,2001,macrs,macrs,0,tcja_ccorp,none
 ccorp,2002,macrs,macrs,20,tcja_ccorp,none
@@ -37,3 +42,8 @@ ccorp,2015,macrs,macrs,50,tcja_ccorp,none
 ccorp,2016,macrs,macrs,50,tcja_ccorp,none
 ccorp,2017,macrs,macrs,50,tcja_ccorp,none
 ccorp,2018,macrs,macrs,100,tcja_ccorp,none
+ccorp,2019,macrs,macrs,100,tcja_ccorp,none
+ccorp,2020,macrs,macrs,100,tcja_ccorp,none
+ccorp,2021,macrs,macrs,100,tcja_ccorp,none
+ccorp,2022,macrs,macrs,100,tcja_ccorp,none
+ccorp,2023,macrs,macrs,expensing,tcja_ccorp,none

@@ -6,13 +6,14 @@
 #----------------------------------------------------------
 
 
-calc_depreciation = function(investment, macro_projections, tax_law) {
+calc_depreciation = function(scenario_info, investment, macro_projections, tax_law) {
   
   #----------------------------------------------------------------------------
   # Calculates depreciation deductions for all projected investment for all
   # years. Iterates over year to deal with RAM limitations. 
   #
   # Parameters:
+  #  - scenario_info   (list) : scenario info object (see get_scenario_info())
   #  - investment        (df) : detailed investment (see build_investment())
   #  - macro_projections (df) : macroeconomic data
   #  - tax_law          (lst) : list containing tax law params and schedules
@@ -76,11 +77,13 @@ calc_depreciation = function(investment, macro_projections, tax_law) {
       )
   }
    
-  # Bind years together and replace NAs (no deduction that year) with 0s
-  output %>% 
+  # Bind years together, replace NAs (no deduction that year) with 0s, and write
+  output %<>% 
     bind_rows() %>%
     mutate(across(.cols = everything(), .fns = ~ replace_na(., 0))) %>% 
-    return()
+    write_csv(file.path(scenario_info$paths$output, 'detail', 'detail.csv'))
+    
+  return(output)
 }
 
 
@@ -123,7 +126,7 @@ calc_schedule = function(B, L, bonus, s179, max_t) {
 calc_macrs = function(B, L) {
   
   #----------------------------------------------------------------------------
-  # Calculates MACRS schedule given decay rate and userful life params.
+  # Calculates MACRS schedule given decay rate and useful life params.
   #
   # Parameters:
   #  - B (dbl) : decay rate factor
@@ -142,9 +145,13 @@ calc_macrs = function(B, L) {
   sl_whole = rep(1 / L, L)
   sl_half  = c(sl_whole / 2, 0) + c(0, sl_whole / 2)
   
+  # Stop if SL and DB are the same
+  if (all(sl_half == db_half)) {
+    return(sl_half)  
+  }
+  
   # Determine period in which SL becomes more generous -- and remaining balance at that point
-  switch = min(which(sl_half > db_half)) 
-  switch = if_else(is.infinite(switch), 1, switch) + if_else(L == 10, 1, 0)  # no idea why 10 year is slightly different than every other class
+  switch = min(which(sl_half > db_half)) + if_else(L == 10, 1, 0)  # no idea why 10 year is slightly different than every other class
   remaining_bal = 1 - sum(db_half[1:switch])
   
   # Calculate remaining SL schedule
