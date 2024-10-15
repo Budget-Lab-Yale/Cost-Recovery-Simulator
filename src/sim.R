@@ -32,10 +32,11 @@ do_scenario = function(id) {
   macro_projections = build_macro_projections(scenario_info)
   
   # Calculate depreciation deductions by investment year and asset class
-  deductions_detailed = calc_depreciation(investment, macro_projections)
+  deductions_detailed = calc_depreciation(investment, macro_projections, tax_law)
   
   # Post-processing
   by_deduction_year = get_by_deduction_year(deductions_detailed)
+  print('yeared')
   recovery_ratios   = calc_recovery_ratios(deductions_detailed, macro_projections, 0.02)
   
   # Return list of output tables 

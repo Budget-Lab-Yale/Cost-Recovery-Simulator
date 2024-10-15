@@ -10,13 +10,13 @@ calc_depreciation = function(investment, macro_projections, tax_law) {
   
   #----------------------------------------------------------------------------
   # Calculates depreciation deductions for all projected investment for all
-  # years. Iterates over year to deal with RAM limitations. 
+  # years. Iterates over year to deal with RAM limitations.
   #
   # Parameters:
   #  - investment        (df) : detailed investment (see build_investment())
   #  - macro_projections (df) : macroeconomic data
   #  - tax_law          (lst) : list containing tax law params and schedules
-  # 
+  #
   # Returns:
   #  - tibble with deductions attached, wide in deduction year (df)
   #----------------------------------------------------------------------------
@@ -30,60 +30,43 @@ calc_depreciation = function(investment, macro_projections, tax_law) {
     ) %>% 
     select(year, inflation, timevalue, none)
   
-  # For each investment year...
-  output = list()
-  for (yr in unique(investment$year)) {
-    
-    # Calculate indexation adjustment factors
-    index_adjustment = indexes %>% 
-      filter(year >= yr) %>%
-      rename(deduction_year = year) %>%
-      mutate(
-        across(
-          .cols = -deduction_year, 
-          .fns  = ~ cumprod(1 + lag(., default = 0))
-        )
-      ) %>% 
-      pivot_longer(
-        cols      = -deduction_year, 
-        names_to  = 'indexation', 
-        values_to = 'factor'
+  # Calculate Adjustment Factors
+  index_adjustment = indexes %>% 
+    rename(deduction_year = year) %>%
+    mutate(
+      across(
+        .cols = -deduction_year, 
+        .fns  = ~ cumprod(1 + lag(., default = 0))
       )
-    
-    # Filter to this year only
-    investment %>% 
-      filter(year == yr) %>% 
-      
-      # Join tax law parameters and associated depreciation schedules 
-      left_join(tax_law$params, by = c('form', 'year', 'asset_class', 'industry')) %>% 
-      expand_grid(t = 1:max(tax_law$schedules$t)) %>% 
-      left_join(tax_law$schedules, by = c('B', 'L', 'bonus', 's179', 't')) %>% 
-      
-      # Calculate depreciation deductions
-      filter(share > 0) %>%
-      mutate(deduction = investment * share) %>% 
-      
-      # Adjust for inflation/time value if specified
-      mutate(deduction_year = year + t - 1) %>%
-      left_join(index_adjustment, by = c('deduction_year', 'indexation')) %>% 
-      mutate(deduction = deduction * factor)
-          
-      # Reshape wide in deduction year(saves memory)
-      select(year, form, asset_class, industry, L, investment, deduction_year, deduction) %>% 
-      pivot_wider(
-        names_from  = deduction_year, 
-        values_from = deduction
-      )
-  }
-   
-  # Bind years together and replace NAs (no deduction that year) with 0s
-  output %>% 
-    bind_rows() %>%
+    ) %>% 
+    pivot_longer(
+      cols      = -deduction_year, 
+      names_to  = 'indexation', 
+      values_to = 'factor'
+    )
+
+  tax_law$schedules %>%
+    left_join(
+      investment %>%
+        left_join(tax_law$params, by = c('form', 'year', 'asset_class', 'industry')),
+      by = c('B', 'L', 'bonus', 's179'), relationship = 'many-to-many'
+    ) %>%
+    mutate(
+      deduction_year = year + t
+    ) %>%
+    left_join(
+      index_adjustment, by = c('deduction_year', 'indexation')
+    ) %>%
+    mutate(
+      deduction = investment * schedule * factor
+    ) %>%
+    select(
+      form, year, asset_class, industry, investment, deduction_year, deduction
+    ) %>%
+    pivot_wider(names_from = deduction_year, values_from = deduction) %>%
     mutate(across(.cols = everything(), .fns = ~ replace_na(., 0))) %>% 
     return()
 }
-
-
 
 calc_schedule = function(B, L, bonus, s179, max_t) {
   
@@ -108,20 +91,11 @@ calc_schedule = function(B, L, bonus, s179, max_t) {
   schedule    = (1 - expensed) * calc_macrs(B, L)
   schedule[1] = schedule[1] + expensed
 
-  # Account for half-year convention (assume all investment occurs in middle of the year)
-  schedule = c(schedule / 2, 0) + c(0, schedule / 2)
-
-  # Return output in df format
-  tibble(
-    t     = 1:ceiling(max_t), 
-    share = c(schedule, rep(0, ceiling(max_t) - length(schedule)))
-  ) %>% 
-  mutate(B = B, L = L, bonus = bonus, s179 = s179, .before = everything()) %>% 
-  return()
+  tibble(B, L, bonus, s179, schedule) %>%
+    mutate(t = 1:length(L)) %>%
+    return()
 
 }
-
-
 
 calc_macrs = function(B, L) {
   
@@ -167,11 +141,21 @@ calc_macrs = function(B, L) {
       deductions = c(deductions, (1 - num) / denom)
     }
   }
-  
+
   return(deductions)
 }
 
 
+calc_B_L = function(tax_law) {
+  combinations = unique(tax_law$params[,c("B", "L")])
+  
+  1:nrow(combinations) %>%
+    map(.f = ~ calc_macrs(combinations[.x,])) %>%
+    bind_rows() %>%
+    pivot_wider(names_from = col, names_glue = "t_{col}", values_from = deductions) %>%
+    replace(is.na(.), 0) %>%
+    return()
+}
 
 declining_balance = function(balance, B, L) {
   
