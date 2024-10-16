@@ -210,7 +210,7 @@ build_assumptions = function(scenario_info) {
   #----------------------------------------------------------------------------
   
   # Loop over each parameter assumption file
-  param_names = c('expensing_takeup', 'year1_usage', 'nol_schedule', 'investment_shifting')
+  param_names = c('expensing_takeup', 'usage', 'nol_schedule', 'investment_shifting')
   assumptions = list()
   for (param_name in param_names) {
     

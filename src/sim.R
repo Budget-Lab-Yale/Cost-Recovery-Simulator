@@ -37,12 +37,14 @@ do_scenario = function(id) {
   macro_projections = build_macro_projections(scenario_info)
   
   # Calculate depreciation deductions by investment year and asset class
-  deductions_detailed = calc_deductions(scenario_info, tax_law, macro_projections, investment, assumptions)
+  depreciation_detailed = calc_depreciation(scenario_info, tax_law, macro_projections, investment, assumptions)
+  
+  # Model deduction usage over time
+  deductions = calc_deduction_usage(scenario_info, depreciation_detailed, assumptions) 
   
   # Post-processing
-  get_by_deduction_year(scenario_info, deductions_detailed)
-  calc_recovery_ratios(scenario_info, deductions_detailed, macro_projections, assumptions, NULL,        0.02)
-  calc_recovery_ratios(scenario_info, deductions_detailed, macro_projections, assumptions, form,        0.02)
-  calc_recovery_ratios(scenario_info, deductions_detailed, macro_projections, assumptions, asset_class, 0.02)
-  calc_recovery_ratios(scenario_info, deductions_detailed, macro_projections, assumptions, industry,    0.02)
+  calc_recovery_ratios(scenario_info, depreciation_detailed, macro_projections, assumptions, NULL,        0.02)
+  calc_recovery_ratios(scenario_info, depreciation_detailed, macro_projections, assumptions, form,        0.02)
+  calc_recovery_ratios(scenario_info, depreciation_detailed, macro_projections, assumptions, asset_class, 0.02)
+  calc_recovery_ratios(scenario_info, depreciation_detailed, macro_projections, assumptions, industry,    0.02)
 }

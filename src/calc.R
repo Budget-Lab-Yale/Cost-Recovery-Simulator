@@ -6,7 +6,7 @@
 #----------------------------------------------------------
 
 
-calc_deductions = function(scenario_info, tax_law, macro_projections, investment, assumptions) {
+calc_depreciation = function(scenario_info, tax_law, macro_projections, investment, assumptions) {
   
   #----------------------------------------------------------------------------
   # Calculates depreciation deductions for all projected investment for all
@@ -62,42 +62,25 @@ calc_deductions = function(scenario_info, tax_law, macro_projections, investment
       # ...and expensing takeup assumptions...
       left_join(assumptions$expensing_takeup, by = c('form', 'year')) %>%
       
-      # ...and associated schedule of depreciation deductions...
+      # ...and associated schedule of depreciation deductions
       expand_grid(t = 1:max(tax_law$schedules$t)) %>% 
       left_join(tax_law$schedules, by = c('B', 'L', 'bonus', 's179', 'bonus_takeup', 's179_takeup', 't')) %>% 
       
-      # ...and year-1 usage rates, which we use to adjust the fraction actually deducted...
-      left_join(assumptions$year1_usage, by = c('form', 'year')) %>% 
-      
-      # ...and, finally, the schedule of net operating loss usage for unused depreciation deductions
-      left_join(
-        assumptions$nol_schedule %>% 
-          pivot_longer(
-            cols            = starts_with('t'), 
-            names_prefix    = 't', 
-            names_transform = as.integer, 
-            names_to        = 't', 
-            values_to       = 'share_nol'
-          ),
-        by = c('form', 'year', 't')
-      ) %>% 
-      mutate(share_nol = replace_na(share_nol, 0)) %>% 
-      
-      # Calculate depreciation and NOL deductions
-      mutate(
-        depreciation = investment * share_used       * share_depreciated,
-        nol          = investment * (1 - share_used) * share_nol
-      ) %>% 
-      
+      # Calculate depreciation deductions
+      mutate(depreciation = investment* share_depreciated) %>% 
+    
       # Adjust for inflation/time value if specified
       mutate(deduction_year = year + t - 1) %>%
       left_join(index_adjustment, by = c('deduction_year', 'indexation')) %>% 
-      mutate(across(.cols = c(depreciation, nol), .fns = ~ . * index_factor)) %>%
+      mutate(depreciation = depreciation * index_factor) %>%
           
       # Reshape wide in deduction year (saves memory)
-      select(year, form, asset_class, industry, L, investment, deduction_year, depreciation, nol) %>% 
-      pivot_longer(cols = c(depreciation, nol), names_to = 'deduction_type') %>% 
-      pivot_wider(names_from = deduction_year)
+      select(year, form, asset_class, industry, L, investment, deduction_year, depreciation) %>% 
+      pivot_wider(
+        names_from  = deduction_year, 
+        values_from = depreciation
+      ) %>% 
+      return()
   }
    
   # Bind years together, replace NAs (no deduction that year) with 0s, and write
@@ -108,6 +91,95 @@ calc_deductions = function(scenario_info, tax_law, macro_projections, investment
     
   return(output)
 }
+
+
+
+calc_deduction_usage = function(scenario_info, depreciation_detailed, assumptions) {
+  
+  #----------------------------------------------------------------------------
+  # Calculates gross depreciation by year, then allocates those deductions 
+  # between usable depreciation deductions and NOLs which are taken in some 
+  # pattern specified by assumptions. Writes outout. 
+  #
+  # Parameters:
+  #  - scenario_info       (list) : scenario info object 
+  #                                 (see get_scenario_info())
+  #  - depreciation_detailed (df) : tibble of deductions by asset class, long 
+  #                                 in investment year and wide in deduction 
+  #                                 year (see calc_all_depreciation()) 
+  #  - assumptions         (list) : assumptions object 
+  #                                 (see build_assumptions())
+  # 
+  # Returns:
+  #  - tibble with depreciation and NOL deductions (df)
+  #----------------------------------------------------------------------------
+  
+  # First, depreciation:
+  depreciation = depreciation_detailed %>%
+    
+    # Aggregate in wide format (helps with RAM issues)
+    group_by(form) %>% 
+    summarise(
+      across(
+        .cols = matches('[[:digit:]]'), 
+        .fns  = sum
+      ), 
+      .groups = 'drop'
+    ) %>%
+    
+    # Reshape long in deduction year
+    pivot_longer(
+      cols            = -form, 
+      names_to        = 'year', 
+      names_transform = as.integer, 
+      values_to       = 'gross_depreciation'
+    ) 
+  
+  
+  # Net, net operating losses
+  nols = depreciation %>% 
+
+    # Split gross deductions between used depreciation and NOLs
+    left_join(assumptions$usage,        by = c('form', 'year')) %>% 
+    left_join(assumptions$nol_schedule, by = c('form', 'year')) %>% 
+    mutate(
+      across(
+        .cols = starts_with('t'), 
+        .fns  = ~ . * gross_depreciation * (1 - share_used)
+      )
+    ) %>% 
+    
+    # Reshape long in NOL year
+    select(-share_used) %>% 
+    pivot_longer(
+      cols            = starts_with('t'), 
+      names_prefix    = 't', 
+      names_transform = as.integer,
+      names_to        = 't',
+      values_to       = 'nol'
+    ) %>% 
+    mutate(nol_year = year + t - 1) %>% 
+    
+    # Aggregate 
+    group_by(form, year = nol_year) %>% 
+    summarise(nol = sum(nol), .groups = 'drop')
+  
+  
+  # Combine, write, and return
+  output = depreciation %>% 
+    left_join(assumptions$usage, by = c('form', 'year')) %>% 
+    mutate(depreciation = gross_depreciation * share_used) %>% 
+    left_join(nols, by = c('form', 'year')) %>% 
+    select(form, year, depreciation, nol) %>% 
+    mutate(total = depreciation + nol) %>% 
+    write_csv(
+      file.path(scenario_info$paths$output, 'totals/deductions.csv')
+    )
+  
+    return(output)
+}
+
+
 
 
 
