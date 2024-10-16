@@ -15,6 +15,11 @@ runscript = file.path('./config/runscripts/', paste0(runscript_id, '.csv')) %>%
 # Instantiate global file roots
 platform_defaults = read_yaml('./config/platform_defaults.yaml')
 
+# Create output root
+time_stamp  = file.path(format(Sys.time(), '%Y%m%d%H'))
+output_root = file.path(platform_defaults$roots$output, time_stamp)
+dir.create(output_root)
+
 
 
 get_scenario_info = function(scenario_id) { 
@@ -58,6 +63,12 @@ get_scenario_info = function(scenario_id) {
   scenario_info$`Investment-Projections` = NULL
   scenario_info$`Macro-Projections`      = NULL
   
+  # Create output paths
+  scenario_info$paths$output = file.path(output_root, scenario_id)
+  dir.create(scenario_info$paths$output)
+  dir.create(file.path(scenario_info$paths$output, 'detail'))
+  dir.create(file.path(scenario_info$paths$output, 'totals'))
+  dir.create(file.path(scenario_info$paths$output, 'deltas'))
   
   return(scenario_info)
 }

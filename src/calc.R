@@ -6,16 +6,18 @@
 #----------------------------------------------------------
 
 
-calc_depreciation = function(investment, macro_projections, tax_law) {
+calc_deductions = function(scenario_info, tax_law, macro_projections, investment, assumptions) {
   
   #----------------------------------------------------------------------------
   # Calculates depreciation deductions for all projected investment for all
-  # years. Iterates over year to deal with RAM limitations. 
+  # years. Iterates over years to deal with RAM limitations. 
   #
   # Parameters:
-  #  - investment        (df) : detailed investment (see build_investment())
+  #  - scenario_info   (list) : scenario info object (see get_scenario_info())
+  #  - tax_law         (list) : list containing tax law params and schedules
   #  - macro_projections (df) : macroeconomic data
-  #  - tax_law          (lst) : list containing tax law params and schedules
+  #  - investment        (df) : detailed investment (see build_investment())
+  #  - assumptions     (list) : assumptions object (see build_assumptions())
   # 
   # Returns:
   #  - tibble with deductions attached, wide in deduction year (df)
@@ -47,78 +49,110 @@ calc_depreciation = function(investment, macro_projections, tax_law) {
       pivot_longer(
         cols      = -deduction_year, 
         names_to  = 'indexation', 
-        values_to = 'factor'
+        values_to = 'index_factor'
       )
     
     # Filter to this year only
-    investment %>% 
+    output[[length(output) + 1]] = investment %>% 
       filter(year == yr) %>% 
       
-      # Join tax law parameters and associated depreciation schedules 
+      # Join: tax law parameters...  
       left_join(tax_law$params, by = c('form', 'year', 'asset_class', 'industry')) %>% 
-      expand_grid(t = 1:max(tax_law$schedules$t)) %>% 
-      left_join(tax_law$schedules, by = c('B', 'L', 'bonus', 's179', 't')) %>% 
       
-      # Calculate depreciation deductions
-      filter(share > 0) %>%
-      mutate(deduction = investment * share) %>% 
+      # ...and expensing takeup assumptions...
+      left_join(assumptions$expensing_takeup, by = c('form', 'year')) %>%
+      
+      # ...and associated schedule of depreciation deductions...
+      expand_grid(t = 1:max(tax_law$schedules$t)) %>% 
+      left_join(tax_law$schedules, by = c('B', 'L', 'bonus', 's179', 'bonus_takeup', 's179_takeup', 't')) %>% 
+      
+      # ...and year-1 usage rates, which we use to adjust the fraction actually deducted...
+      left_join(assumptions$year1_usage, by = c('form', 'year')) %>% 
+      
+      # ...and, finally, the schedule of net operating loss usage for unused depreciation deductions
+      left_join(
+        assumptions$nol_schedule %>% 
+          pivot_longer(
+            cols            = starts_with('t'), 
+            names_prefix    = 't', 
+            names_transform = as.integer, 
+            names_to        = 't', 
+            values_to       = 'share_nol'
+          ),
+        by = c('form', 'year', 't')
+      ) %>% 
+      mutate(share_nol = replace_na(share_nol, 0)) %>% 
+      
+      # Calculate depreciation and NOL deductions
+      mutate(
+        depreciation = investment * share_used       * share_depreciated,
+        nol          = investment * (1 - share_used) * share_nol
+      ) %>% 
       
       # Adjust for inflation/time value if specified
       mutate(deduction_year = year + t - 1) %>%
       left_join(index_adjustment, by = c('deduction_year', 'indexation')) %>% 
-      mutate(deduction = deduction * factor)
+      mutate(across(.cols = c(depreciation, nol), .fns = ~ . * index_factor)) %>%
           
-      # Reshape wide in deduction year(saves memory)
-      select(year, form, asset_class, industry, L, investment, deduction_year, deduction) %>% 
-      pivot_wider(
-        names_from  = deduction_year, 
-        values_from = deduction
-      )
+      # Reshape wide in deduction year (saves memory)
+      select(year, form, asset_class, industry, L, investment, deduction_year, depreciation, nol) %>% 
+      pivot_longer(cols = c(depreciation, nol), names_to = 'deduction_type') %>% 
+      pivot_wider(names_from = deduction_year)
   }
    
-  # Bind years together and replace NAs (no deduction that year) with 0s
-  output %>% 
+  # Bind years together, replace NAs (no deduction that year) with 0s, and write
+  output %<>% 
     bind_rows() %>%
     mutate(across(.cols = everything(), .fns = ~ replace_na(., 0))) %>% 
-    return()
+    write_csv(file.path(scenario_info$paths$output, 'detail', 'detail.csv'))
+    
+  return(output)
 }
 
 
 
-calc_schedule = function(B, L, bonus, s179, max_t) {
+calc_schedule = function(B, L, bonus, s179, bonus_takeup, s179_takeup, max_t) {
   
   #----------------------------------------------------------------------------
   # Calculates schedule of deductions give MACRS, bonus, and 179 params.
   #
   # Parameters:
-  #  - B     (dbl) : decay rate factor
-  #  - L     (dbl) : cost recovery life
-  #  - bonus (dbl) : bonus depreciation rate
-  #  - s179  (dbl) : share of investment eligible for section 179 expensing
-  #  - max_t (dbl) : number of years for which to show series 
+  #  - B            (dbl) : decay rate factor
+  #  - L            (dbl) : cost recovery life
+  #  - bonus        (dbl) : bonus depreciation rate
+  #  - s179         (dbl) : share of investment eligible for 179 expensing
+  #  - bonus_takuup (dbl) : share of eligible bonus investment used
+  #  - s179_takeup  (dbl) : share of eligible 179 investment used 
+  #  - max_t        (dbl) : number of years for which to show series 
   # 
   # Returns:
   #  - tibble of schedule with parameters, long in relative year (df)
   #----------------------------------------------------------------------------
   
-  # Calculate amount avilable for immediate expensing
-  expensed = s179 + bonus * (1 - s179)
+  # Calculate amount of investment immediately expensing
+  bonus_used = bonus * bonus_takeup
+  s179_used  = s179  * s179_takeup
+  expensed   = s179_used + bonus_used * (1 - s179_used)
   
   # Calculate remaining MACRS schedule and add in expensed amount
   schedule    = (1 - expensed) * calc_macrs(B, L)
   schedule[1] = schedule[1] + expensed
 
-  # Account for half-year convention (assume all investment occurs in middle of the year)
-  schedule = c(schedule / 2, 0) + c(0, schedule / 2)
-
   # Return output in df format
   tibble(
-    t     = 1:ceiling(max_t), 
-    share = c(schedule, rep(0, ceiling(max_t) - length(schedule)))
+    t = 1:ceiling(max_t), 
+    share_depreciated = c(schedule, rep(0, ceiling(max_t) - length(schedule)))
   ) %>% 
-  mutate(B = B, L = L, bonus = bonus, s179 = s179, .before = everything()) %>% 
+  mutate(
+    B            = B, 
+    L            = L, 
+    bonus        = bonus, 
+    s179         = s179, 
+    bonus_takeup = bonus_takeup, 
+    s179_takeup  = s179_takeup, 
+    .before = everything()
+  ) %>% 
   return()
-
 }
 
 
@@ -126,7 +160,7 @@ calc_schedule = function(B, L, bonus, s179, max_t) {
 calc_macrs = function(B, L) {
   
   #----------------------------------------------------------------------------
-  # Calculates MACRS schedule given decay rate and userful life params.
+  # Calculates MACRS schedule given decay rate and useful life params.
   #
   # Parameters:
   #  - B (dbl) : decay rate factor
@@ -136,80 +170,31 @@ calc_macrs = function(B, L) {
   #  - vector of deductions (dbl[])
   #----------------------------------------------------------------------------
   
-  # Binary flag to switch from declining balance method to straight line method
-  switch = F
-  balance = 1
-  deductions = c()
+  # Calculate half-year DB schedule 
+  db_bal   = cumprod(rep(1 - B / L, L))
+  db_whole = lag(db_bal, default = 1) - db_bal 
+  db_half  = c(db_whole / 2, 0) + c(0, db_whole / 2)
   
-  # Loop over periods
-  for (t in 1:ceiling(L)) {
-    
-    # Get straight line balance
-    s_balance = straight_line(balance, L)
-    
-    # If straight line still hasn't been triggered... 
-    if (!switch) {
-      
-      # Calculate and append declining balance deduction
-      d_balance  = declining_balance(balance, B, L)
-      balance    = d_balance[1]
-      deductions = c(deductions, d_balance[2])
-      
-      # Check if straight line deduction has been triggered (i.e. is larger)
-      if (s_balance[2] > d_balance[2]) {
-        switch = T
-        num    = sum(deductions)
-        denom  = L - t
-      } 
-      
-    # ...otherwise, apply straight line method
-    } else {
-      deductions = c(deductions, (1 - num) / denom)
-    }
+  # Calculate half-year SL schedule
+  sl_whole = rep(1 / L, L)
+  sl_half  = c(sl_whole / 2, 0) + c(0, sl_whole / 2)
+  
+  # Stop if SL and DB are the same
+  if (all(sl_half == db_half)) {
+    return(sl_half)  
   }
   
-  return(deductions)
+  # Determine period in which SL becomes more generous -- and remaining balance at that point
+  switch = min(which(sl_half > db_half)) + if_else(B > 1 & L == 10, 1, 0)  # no idea why 10 year is slightly different than every other class
+  remaining_bal = 1 - sum(db_half[1:switch])
+  
+  # Calculate remaining SL schedule
+  remaining_t  = L - switch + 0.5
+  sl_remaining = (remaining_bal / remaining_t) / c(rep(1, remaining_t), 2)
+
+  # Piece together and return
+  return(c(db_half[1:switch], sl_remaining))
 }
 
-
-
-declining_balance = function(balance, B, L) {
-  
-  #----------------------------------------------------------------------------
-  # Helper function to calculate declining next-period deduction under 
-  # declining balance convention.
-  #
-  # Parameters:
-  #  - balance (dbl) : existing balance
-  #  - B       (dbl) : decay rate factor
-  #  - L       (dbl) : cost recovery life
-  # 
-  # Returns:
-  #  - tuple of new balance, next-period deduction (dbl[])
-  #----------------------------------------------------------------------------
-  
-  d_balance = balance * (1 - B / L)
-  return(c(d_balance, balance - d_balance))
-}
-
-
-
-straight_line = function(balance, L) {
-  
-  #----------------------------------------------------------------------------
-  # Helper function to calculate declining next-period deduction under 
-  # straight line convention.
-  #
-  # Parameters:
-  #  - balance (dbl) : existing balance
-  #  - L       (dbl) : cost recovery life
-  # 
-  # Returns:
-  #  - tuple of new balance, next-period deduction (dbl[])
-  #----------------------------------------------------------------------------
-
-  s_balance = balance - 1 / L
-  return(c(s_balance, balance - s_balance))
-}
 
 

@@ -6,64 +6,107 @@
 #---------------------------------------------------
 
 
-get_by_deduction_year = function(deductions_detailed) {
+get_by_deduction_year = function(scenario_info, deductions_detailed) {
   
   #----------------------------------------------------------------------------
   # Tabulates total deductions by deduction year.
   # 
   # Parameters:
+  #  - scenario_info     (list) : scenario info object 
+  #                               (see get_scenario_info())
   #  - deductions_detailed (df) : tibble of deductions by asset class, long in
   #                               investment year and wide in deduction year 
   #                               (see calc_all_depreciation()) 
   #
   # Returns:
-  #  - tibble of deductions by deduction year, wide in legal form (df) 
+  #  - void (writes output)
   #----------------------------------------------------------------------------
   
   deductions_detailed %>%
-    pivot_longer(
-      cols            = -c(form, year, asset_class, industry, investment), 
-      names_to        = 'deduction_year', 
-      names_transform = as.integer,
-      values_to       = 'deductions'
+    
+    # Aggregate in wide format (helps with RAM issues)
+    group_by(form, deduction_type) %>% 
+    summarise(
+      across(
+        .cols = matches('[[:digit:]]'), 
+        .fns  = sum
+      ), 
+      .groups = 'drop'
     ) %>%
-    group_by(form, deduction_year) %>%
-    summarise(value = sum(deductions), .groups = 'drop') %>%
-    pivot_wider(names_from = form) %>% 
-    return()
+    
+    # Reshape long in deduction year
+    pivot_longer(
+      cols            = -c(form, deduction_type), 
+      names_to        = 'deduction_year', 
+      names_transform = as.integer
+    ) %>%
+    pivot_wider(names_from = deduction_type) %>% 
+    
+    # Add total, clean up, and write
+    mutate(total = depreciation + nol) %>% 
+    filter(deduction_year <= max(scenario_info$years)) %>% 
+    write_csv(
+      file.path(scenario_info$paths$output, 'totals', 'by_deduction_year.csv')
+    )
 }
 
 
 
-calc_recovery_ratios = function(deductions_detailed, macro_projections, spread = 0.02) {
+calc_recovery_ratios = function(scenario_info, deductions_detailed, 
+                                macro_projections, assumptions, group_var, 
+                                spread = 0.02) {
   
   #----------------------------------------------------------------------------
   # Calculates the ratio of the value of depreciation deductions (both real  
-  # and present value) to investment basis by form X asset class X industry X 
-  # year.
+  # and present value) to investment basis by year X specified grouping var.
   # 
   # Parameters:
+  # - scenario_info     (list) : scenario info object (see get_scenario_info())
   # - deductions_detailed (df) : tibble of deductions by asset class, long in
   #                              investment year and wide in deduction year 
   #                              (see calc_all_depreciation()) 
   # - macro_projections   (df) : tibble of macro variable projections
+  # - assumptions       (list) : assumptions object (see build_assumptions())
+  # - group_var          (obj) : grouping variable
   # - spread             (dbl) : assumed discount rate spread over 10-year
   # 
   # Returns:
-  # - list containing summary metrics of recovery ratios for different levels 
-  #   of aggregation (list)
+  # - void (writes output)
   #----------------------------------------------------------------------------
   
-  detailed = deductions_detailed %>% 
+  # Generate file name dynamically 
+  if (rlang::as_label(enquo(group_var)) == 'NULL') { 
+    file_name = 'recovery_ratios.csv' 
+  } else {
+    file_name = paste0('recovery_ratios_', rlang::as_name(enquo(group_var)), '.csv')
+  }
+  
+  
+  deductions_detailed %>% 
+    
+    # Adjust deductions for year-1 usage share (recovery ratio assumes sufficient taxable income)
+    left_join(assumptions$year1_usage, by = c('form', 'year')) %>% 
+    mutate(investment = investment * share_used) %>% 
+    filter(deduction_type == 'depreciation') %>%
+    
+    # Aggregate before reshaping long (for memory)
+    group_by(year, {{ group_var }}) %>% 
+    summarise(
+      across(
+        .cols = c(investment, matches('[[:digit:]]')), 
+        .fns  = sum
+      ), 
+      .groups = 'drop'
+    ) %>% 
     
     # Get investment year X deduction year totals
     pivot_longer(
-      cols            = -c(form, year, asset_class, industry, investment), 
+      cols            = matches('[[:digit:]]'), 
       names_to        = 'deduction_year', 
       names_transform = as.integer,
       values_to       = 'deductions'
     ) %>% 
-    filter(deduction_year >= year) %>% 
+    filter(deduction_year >= year, deduction_year <= max(scenario_info$years)) %>% 
     
     # Join risk-free rate and calculate discount rate
     left_join(
@@ -77,45 +120,19 @@ calc_recovery_ratios = function(deductions_detailed, macro_projections, spread =
     ) %>% 
     
     # Calculate present value of deductions
-    group_by(form, year, asset_class, industry) %>% 
+    group_by(year, {{ group_var }}) %>% 
     summarise(
-      real = sum(deductions / cumprod(1 + lag(inflation_rate, default = 0))),
-      pv   = sum(deductions / cumprod(1 + lag(discount_rate,  default = 0))), 
+      investment = unique(investment),
+      real       = sum(deductions / cumprod(1 + lag(inflation_rate, default = 0))),
+      pv         = sum(deductions / cumprod(1 + lag(discount_rate,  default = 0))), 
       .groups = 'drop'
     ) %>% 
     
     # Calculate lifetime recovery ratio
-    left_join(
-      deductions_detailed %>% 
-        group_by(form, year, asset_class, industry) %>% 
-        summarise(investment = sum(investment), .groups = 'drop'), 
-      by = c('form', 'year', 'asset_class', 'industry')
-    ) %>% 
-    select(form, year, asset_class, industry, investment, real, pv) %>%  
-    mutate(across(.cols = c(real, pv), .fns = ~ . / investment))
-    
-  # Return various summary metrics
-  get_summary = function(group_var) { 
-    detailed %>%
-      group_by(year, {{ group_var }}) %>% 
-      summarise(
-        across(
-          .cols = c(real, pv), 
-          .fns  = ~ weighted.mean(., investment)
-        ), 
-        .groups = 'drop'
-      ) %>% 
-      return()
-  }
-  return(
-    list(
-      detailed       = detailed, 
-      overall        = get_summary(),
-      by_form        = get_summary(form),
-      by_asset_class = get_summary(asset_class),
-      by_industry    = get_summary(industry)
+    mutate(across(.cols = c(real, pv), .fns = ~ . / investment)) %>% 
+    select(-investment) %>% 
+    write_csv(
+      file.path(scenario_info$paths$output, 'totals', file_name)
     )
-  )
 }
   
-

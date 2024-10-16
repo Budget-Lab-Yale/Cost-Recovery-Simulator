@@ -11,8 +11,8 @@ list.files('./src', recursive = T) %>%
   walk(.f = ~ if (.x != 'main.R') source(file.path('./src/', .x)))
 
 # Run simulation for all scenarios
-scenario_output = runscript$id %>% 
-  map(do_scenario) %>% 
-  set_names(runscript$id)
+walk(runscript$id, do_scenario, .progress = T) 
 
 # TODO across-scenario post-processing comparisons
+
+
