@@ -39,8 +39,9 @@ do_scenario = function(id) {
   # Calculate depreciation deductions by investment year and asset class
   depreciation_detailed = calc_depreciation(scenario_info, tax_law, macro_projections, investment, assumptions)
   
-  # Model deduction usage over time
+  # Model deduction usage over time and calculate revenue
   deductions = calc_deduction_usage(scenario_info, depreciation_detailed, assumptions) 
+  revenue    = calc_revenue(scenario_info, tax_law, deductions)
   
   # Post-processing
   calc_recovery_ratios(scenario_info, depreciation_detailed, macro_projections, assumptions, NULL,        0.02)

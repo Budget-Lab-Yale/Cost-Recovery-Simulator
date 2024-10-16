@@ -99,7 +99,7 @@ calc_deduction_usage = function(scenario_info, depreciation_detailed, assumption
   #----------------------------------------------------------------------------
   # Calculates gross depreciation by year, then allocates those deductions 
   # between usable depreciation deductions and NOLs which are taken in some 
-  # pattern specified by assumptions. Writes outout. 
+  # pattern specified by assumptions. Writes output. 
   #
   # Parameters:
   #  - scenario_info       (list) : scenario info object 
@@ -172,13 +172,42 @@ calc_deduction_usage = function(scenario_info, depreciation_detailed, assumption
     left_join(nols, by = c('form', 'year')) %>% 
     select(form, year, depreciation, nol) %>% 
     mutate(total = depreciation + nol) %>% 
-    write_csv(
-      file.path(scenario_info$paths$output, 'totals/deductions.csv')
-    )
+    write_csv(file.path(scenario_info$paths$output, 'totals/deductions.csv'))
   
     return(output)
 }
 
+
+
+calc_revenue = function(scenario_info, tax_law, deductions) {
+  
+  #----------------------------------------------------------------------------
+  # Given projected path of deductions and tax rates, calculates implied 
+  # revenue loss associated with depreciation policy. Writes output. 
+  #
+  # Parameters:
+  #  - scenario_info (list) : scenario info object (see get_scenario_info())
+  #  - tax_law       (list) : tax law object (see build_tax_law())
+  #  - deductions      (df) : tibble of deductions by legal form and year
+  # 
+  # Returns:
+  #  - tibble with revenue loss by legal form and year (df)
+  #----------------------------------------------------------------------------
+  
+  output = deductions %>% 
+    left_join(
+      tax_law$params %>% 
+        distinct(form, year, tax_rate),
+      by = c('form', 'year')
+    ) %>% 
+    mutate(value = -total * tax_rate) %>% 
+    select(form, year, value) %>% 
+    pivot_wider(names_from = form) %>% 
+    mutate(total = ccorp + pt) %>% 
+    write_csv(file.path(scenario_info$paths$output, 'totals/revenue.csv'))
+  
+  return(output)
+}
 
 
 
