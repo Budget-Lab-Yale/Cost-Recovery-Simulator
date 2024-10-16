@@ -166,6 +166,11 @@ build_investment_data = function(scenario_info, assumptions) {
     ) %>% 
     select(year, form, everything()) %>% 
     arrange(year, form) %>% 
+    
+    # Adjust for exogenously-imposed changes in investment relative to baseline
+    left_join(assumptions$investment_shifting, by = c('year', 'form')) %>% 
+    mutate(investment = investment * factor) %>%
+    select(-factor) %>% 
     return()
 }
 
