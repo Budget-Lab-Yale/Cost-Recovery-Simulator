@@ -4,7 +4,7 @@ library(magrittr)
 library(yaml)
 
 # User-supplied parameters 
-runscript_id = 'tests/expensing2023'
+runscript_id = 'tests/wyden-smith'
 
 # Source all functions and define global variables
 list.files('./src', recursive = T) %>% 
