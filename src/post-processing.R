@@ -23,19 +23,27 @@ get_by_deduction_year = function(scenario_info, deductions_detailed) {
   #----------------------------------------------------------------------------
   
   deductions_detailed %>%
-    group_by(form) %>% 
+    
+    # Aggregate in wide format (helps with RAM issues)
+    group_by(form, deduction_type) %>% 
     summarise(
       across(
         .cols = matches('[[:digit:]]'), 
         .fns  = sum
-      )
+      ), 
+      .groups = 'drop'
     ) %>%
+    
+    # Reshape long in deduction year
     pivot_longer(
-      cols            = -form, 
+      cols            = -c(form, deduction_type), 
       names_to        = 'deduction_year', 
-      names_transform = as.integer, 
-      values_to       = 'deductions'
-    ) %>% 
+      names_transform = as.integer
+    ) %>%
+    pivot_wider(names_from = deduction_type) %>% 
+    
+    # Add total, clean up, and write
+    mutate(total = depreciation + nol) %>% 
     filter(deduction_year <= max(scenario_info$years)) %>% 
     write_csv(
       file.path(scenario_info$paths$output, 'totals', 'by_deduction_year.csv')
@@ -45,7 +53,8 @@ get_by_deduction_year = function(scenario_info, deductions_detailed) {
 
 
 calc_recovery_ratios = function(scenario_info, deductions_detailed, 
-                                macro_projections, group_var, spread = 0.02) {
+                                macro_projections, assumptions, group_var, 
+                                spread = 0.02) {
   
   #----------------------------------------------------------------------------
   # Calculates the ratio of the value of depreciation deductions (both real  
@@ -57,6 +66,7 @@ calc_recovery_ratios = function(scenario_info, deductions_detailed,
   #                              investment year and wide in deduction year 
   #                              (see calc_all_depreciation()) 
   # - macro_projections   (df) : tibble of macro variable projections
+  # - assumptions       (list) : assumptions object (see build_assumptions())
   # - group_var          (obj) : grouping variable
   # - spread             (dbl) : assumed discount rate spread over 10-year
   # 
@@ -73,6 +83,11 @@ calc_recovery_ratios = function(scenario_info, deductions_detailed,
   
   
   deductions_detailed %>% 
+    
+    # Adjust deductions for year-1 usage share (recovery ratio assumes sufficient taxable income)
+    left_join(assumptions$year1_usage, by = c('form', 'year')) %>% 
+    mutate(investment = investment * share_used) %>% 
+    filter(deduction_type == 'depreciation') %>%
     
     # Aggregate before reshaping long (for memory)
     group_by(year, {{ group_var }}) %>% 

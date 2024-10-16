@@ -166,10 +166,6 @@ build_investment_data = function(scenario_info, assumptions) {
     ) %>% 
     select(year, form, everything()) %>% 
     arrange(year, form) %>% 
-    
-    # Join expensing takeup rate parameters
-    left_join(assumptions$expensing_takeup, by = c('year', 'form')) %>%
-    relocate(investment, .after = everything()) %>% 
     return()
 }
 

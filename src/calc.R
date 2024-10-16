@@ -6,7 +6,7 @@
 #----------------------------------------------------------
 
 
-calc_depreciation = function(scenario_info, investment, macro_projections, tax_law) {
+calc_deductions = function(scenario_info, tax_law, macro_projections, investment, assumptions) {
   
   #----------------------------------------------------------------------------
   # Calculates depreciation deductions for all projected investment for all
@@ -14,9 +14,10 @@ calc_depreciation = function(scenario_info, investment, macro_projections, tax_l
   #
   # Parameters:
   #  - scenario_info   (list) : scenario info object (see get_scenario_info())
-  #  - investment        (df) : detailed investment (see build_investment())
+  #  - tax_law         (list) : list containing tax law params and schedules
   #  - macro_projections (df) : macroeconomic data
-  #  - tax_law          (lst) : list containing tax law params and schedules
+  #  - investment        (df) : detailed investment (see build_investment())
+  #  - assumptions     (list) : assumptions object (see build_assumptions())
   # 
   # Returns:
   #  - tibble with deductions attached, wide in deduction year (df)
@@ -48,33 +49,55 @@ calc_depreciation = function(scenario_info, investment, macro_projections, tax_l
       pivot_longer(
         cols      = -deduction_year, 
         names_to  = 'indexation', 
-        values_to = 'factor'
+        values_to = 'index_factor'
       )
     
     # Filter to this year only
     output[[length(output) + 1]] = investment %>% 
       filter(year == yr) %>% 
       
-      # Join tax law parameters and associated depreciation schedules 
+      # Join: tax law parameters...  
       left_join(tax_law$params, by = c('form', 'year', 'asset_class', 'industry')) %>% 
+      
+      # ...and expensing takeup assumptions...
+      left_join(assumptions$expensing_takeup, by = c('form', 'year')) %>%
+      
+      # ...and associated schedule of depreciation deductions...
       expand_grid(t = 1:max(tax_law$schedules$t)) %>% 
       left_join(tax_law$schedules, by = c('B', 'L', 'bonus', 's179', 'bonus_takeup', 's179_takeup', 't')) %>% 
       
-      # Calculate depreciation deductions
-      filter(share > 0) %>%
-      mutate(deduction = investment * share) %>% 
+      # ...and year-1 usage rates, which we use to adjust the fraction actually deducted...
+      left_join(assumptions$year1_usage, by = c('form', 'year')) %>% 
+      
+      # ...and, finally, the schedule of net operating loss usage for unused depreciation deductions
+      left_join(
+        assumptions$nol_schedule %>% 
+          pivot_longer(
+            cols            = starts_with('t'), 
+            names_prefix    = 't', 
+            names_transform = as.integer, 
+            names_to        = 't', 
+            values_to       = 'share_nol'
+          ),
+        by = c('form', 'year', 't')
+      ) %>% 
+      mutate(share_nol = replace_na(share_nol, 0)) %>% 
+      
+      # Calculate depreciation and NOL deductions
+      mutate(
+        depreciation = investment * share_used       * share_depreciated,
+        nol          = investment * (1 - share_used) * share_nol
+      ) %>% 
       
       # Adjust for inflation/time value if specified
       mutate(deduction_year = year + t - 1) %>%
       left_join(index_adjustment, by = c('deduction_year', 'indexation')) %>% 
-      mutate(deduction = deduction * factor) %>% 
+      mutate(across(.cols = c(depreciation, nol), .fns = ~ . * index_factor)) %>%
           
       # Reshape wide in deduction year (saves memory)
-      select(year, form, asset_class, industry, L, investment, deduction_year, deduction) %>% 
-      pivot_wider(
-        names_from  = deduction_year, 
-        values_from = deduction
-      )
+      select(year, form, asset_class, industry, L, investment, deduction_year, depreciation, nol) %>% 
+      pivot_longer(cols = c(depreciation, nol), names_to = 'deduction_type') %>% 
+      pivot_wider(names_from = deduction_year)
   }
    
   # Bind years together, replace NAs (no deduction that year) with 0s, and write
@@ -117,8 +140,8 @@ calc_schedule = function(B, L, bonus, s179, bonus_takeup, s179_takeup, max_t) {
 
   # Return output in df format
   tibble(
-    t     = 1:ceiling(max_t), 
-    share = c(schedule, rep(0, ceiling(max_t) - length(schedule)))
+    t = 1:ceiling(max_t), 
+    share_depreciated = c(schedule, rep(0, ceiling(max_t) - length(schedule)))
   ) %>% 
   mutate(
     B            = B, 
@@ -172,5 +195,6 @@ calc_macrs = function(B, L) {
   # Piece together and return
   return(c(db_half[1:switch], sl_remaining))
 }
+
 
 
