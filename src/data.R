@@ -104,7 +104,7 @@ build_schedules = function(params, expensing_takeup) {
   params %>% 
     distinct(form, B, L, bonus, s179) %>% 
     left_join(
-      assumptions$expensing_takeup %>% distinct(form, bonus_takeup, s179_takeup), 
+      expensing_takeup %>% distinct(form, bonus_takeup, s179_takeup), 
       by = 'form', 
       relationship = 'many-to-many'
     ) %>% 
