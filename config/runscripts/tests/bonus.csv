@@ -1,3 +1,4 @@
 id,tax_law,years,expensing_takeup,usage,nol_schedule,investment_shifting
 baseline,baseline,2000:2060,baseline,baseline,baseline,baseline
-expensing2023,expensing2023,2000:2060,expensing2023,baseline,baseline,baseline
+wyden-smith,wyden-smith,2000:2060,baseline,baseline,baseline,baseline
+perm-bonus,perm-bonus,2000:2060,baseline,baseline,baseline,baseline

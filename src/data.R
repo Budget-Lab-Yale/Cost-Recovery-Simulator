@@ -102,12 +102,13 @@ build_schedules = function(params, expensing_takeup) {
   
   # Get all combos of tax law parameters
   params %>% 
-    distinct(B, L, bonus, s179) %>% 
-    
-    # Add combos of takeup rates
-    expand_grid(
-      expensing_takeup %>% distinct(bonus_takeup, s179_takeup)
-    ) %>%
+    distinct(form, B, L, bonus, s179) %>% 
+    left_join(
+      expensing_takeup %>% distinct(form, bonus_takeup, s179_takeup), 
+      by = 'form', 
+      relationship = 'many-to-many'
+    ) %>% 
+    select(-form) %>%
     
     # Convert to list for the arguments of calc_schedule() and apply
     as.list() %>% 
@@ -210,7 +211,7 @@ build_assumptions = function(scenario_info) {
   #----------------------------------------------------------------------------
   
   # Loop over each parameter assumption file
-  param_names = c('expensing_takeup', 'year1_usage', 'nol_schedule', 'investment_shifting')
+  param_names = c('expensing_takeup', 'usage', 'nol_schedule', 'investment_shifting')
   assumptions = list()
   for (param_name in param_names) {
     
