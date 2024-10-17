@@ -182,8 +182,9 @@ calc_deduction_usage = function(scenario_info, depreciation_detailed, assumption
 calc_revenue = function(scenario_info, tax_law, deductions) {
   
   #----------------------------------------------------------------------------
-  # Given projected path of deductions and tax rates, calculates implied 
-  # revenue loss associated with depreciation policy. Writes output. 
+  # Given projected path of deductions and tax rates, calculates implied
+  # fiscal year revenue loss associated with depreciation policy. Writes 
+  # output. 
   #
   # Parameters:
   #  - scenario_info (list) : scenario info object (see get_scenario_info())
@@ -194,19 +195,32 @@ calc_revenue = function(scenario_info, tax_law, deductions) {
   #  - tibble with revenue loss by legal form and year (df)
   #----------------------------------------------------------------------------
   
-  output = deductions %>% 
+  # CY quarter shares of corporate receipts, estimated on 2016-2023 MTS  
+  q_shares = c(0.08, 0.35, 0.3, 0.27)
+  
+  # Calculate CY ~liability
+  cy = deductions %>% 
     left_join(
       tax_law$params %>% 
         distinct(form, year, tax_rate),
       by = c('form', 'year')
     ) %>% 
-    mutate(value = -total * tax_rate) %>% 
-    select(form, year, value) %>% 
+    mutate(liab = -total * tax_rate) %>% 
+    select(form, year, liab)
+
+  # Convert to FY basis
+  fy = cy %>% 
+    expand_grid(q = 1:4) %>% 
+    mutate(fy = year + as.integer(q == 4)) %>% 
+    left_join(tibble(q = 1:4, share = q_shares), by = 'q') %>% 
+    mutate(liab = liab * share) %>%
+    group_by(form, year = fy) %>% 
+    summarise(value = sum(liab), .groups = 'drop') %>% 
     pivot_wider(names_from = form) %>% 
     mutate(total = ccorp + pt) %>% 
     write_csv(file.path(scenario_info$paths$output, 'totals/revenue.csv'))
   
-  return(output)
+  return(fy)
 }
 
 

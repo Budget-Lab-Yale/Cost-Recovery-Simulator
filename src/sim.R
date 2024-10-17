@@ -17,7 +17,7 @@ do_scenario = function(id) {
   # - list containing various detailed and summary tables (list)
   #----------------------------------------------------------------------------    
   
-  print(paste('Running scenario:', id, ' '))
+  print(paste('Running scenario:', id))
   
   # Get scenario info
   scenario_info = get_scenario_info(id)
