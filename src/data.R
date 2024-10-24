@@ -183,7 +183,7 @@ build_macro_projections = function(scenario_info) {
 build_ccorp_shares = function() {
   
   #----------------------------------------------------------------------------
-  # Computes ccorp shares by industry by asset class by years using business
+  # Computes ccorp shares by industry by asset class by year using business
   # receipts data
   #
   # Parameters:
@@ -194,7 +194,7 @@ build_ccorp_shares = function() {
   
   
   
-  # read C corp shares of capital stock by asset class and industry 
+  # read c corp shares of capital stock by asset class and industry 
   ccorp_shares = read_csv('./resources/ccorp_share.csv',
                           show_col_types = FALSE) %>%
     
@@ -231,10 +231,6 @@ build_ccorp_shares = function() {
       values_to = 'ccorp_share'
     ) %>%
     mutate(
-      meow = ifelse(year < 2022,
-                    # fix shares > 1
-                    ccorp_share*b,
-                    ccorp_share),
       ccorp_share = ifelse(year < 2022,
                    # fix shares > 1
                    ifelse(ccorp_share*b>1,
