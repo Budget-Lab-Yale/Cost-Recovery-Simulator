@@ -1,0 +1,105 @@
+detailed_industry,soi_industry,business_receipts,remainder,use_total_receipts,weight
+Farms,Agricultural production,50104512,NA,NA,NA
+"Forestry,_Fishing,_and_Related_Activites",Forestry and logging,4019515,NA,NA,NA
+"Forestry,_Fishing,_and_Related_Activites","Support activities and fishing, hunting and trapping",12353528,NA,NA,NA
+Oil_and_Gas_Extraction,Mining,276544534,NA,NA,NA
+Mining_(Except_Oil_and_Gas),Mining,276544534,NA,NA,NA
+Support_Activities_For_Mining,Mining,276544534,NA,NA,NA
+Hydroelectric_Power_Generation,Utilities,563692738,NA,NA,NA
+Nuclear_Electric_Power_Generation,Utilities,563692738,NA,NA,NA
+"Fossil_Fuel_Electric_Power_Generation,_Steam_and_Combined_Cycle",Utilities,563692738,NA,NA,NA
+"Fossil_Fuel_Electric_Power_Generation,_Combustion",Utilities,563692738,NA,NA,NA
+Other_Electric_Power_Generation,Utilities,563692738,NA,NA,NA
+Electric_Power_Transmission_and_Distribution,Utilities,563692738,NA,NA,NA
+Natural_Gas_Distribution_and_Transmission,Utilities,563692738,NA,NA,NA
+Water_and_Sewer_Systems,Utilities,563692738,NA,NA,NA
+Construction,Construction,421648702,NA,NA,NA
+"Grain,_Sugar,_and_Vegetable_Oil_Products_Manufacturing",Food manufacturing,438257841,NA,NA,NA
+Other_Food_Products_Manufacturing,Food manufacturing,438257841,NA,NA,NA
+Beverage_and_Tobacco_Products_Manufacturing,Beverage and tobacco product manufacturing,135503524,NA,NA,NA
+"Knitted_Goods,_Carpets,_and_Textile_Finishing_Manufacturing",Textile mills and textile product mills,21640716,NA,NA,NA
+Other_Textile_and_Textile_Product_Mills,Textile mills and textile product mills,21640716,NA,NA,NA
+Apparel_Manufacturing,Apparel manufacturing,27972312,NA,NA,NA
+Leather_and_Allied_Products_Manufacturing,Leather and allied product manufacturing,3735066,NA,NA,NA
+Wood_Product_Manufacturing,Wood product manufacturing,31823256,NA,NA,NA
+Paper_Manufacturing,Paper manufacturing,135733487,NA,NA,NA
+Printing_and_Related_Support_Activities,Printing and related support activities,41105406,NA,NA,NA
+Petroleum_Refining,Petroleum and coal products manufacturing,1386486908,NA,NA,NA
+Other_Petroleum_and_Coal_Products_Manufacturing,Petroleum and coal products manufacturing,1386486908,NA,NA,NA
+Chemical_Manufacturing,Chemical manufacturing,690865747,NA,NA,NA
+Plastics_and_Rubber_Products_Manufacturing,Plastics and rubber products manufacturing,104518844,NA,NA,NA
+Glass_Products_Manufacturing,Nonmetallic mineral product manufacturing,71427944,NA,NA,NA
+Cement_Manufacturing,Nonmetallic mineral product manufacturing,71427944,NA,NA,NA
+Other_Nonmetalic_Mineral_Products_Manufacturing,Nonmetallic mineral product manufacturing,71427944,NA,NA,NA
+Primary_Ferrous_Metal_Manufacturing,Primary metal manufacturing,145582412,NA,NA,NA
+Primary_Nonferrous_Metal_Manufacturing,Primary metal manufacturing,145582412,NA,NA,NA
+Fabricated_Metal_Product_Manufacturing,Fabricated metal product manufacturing,162606084,NA,NA,NA
+Machinery_Manufacturing,Machinery manufacturing,273600842,NA,NA,NA
+Computer_and_Electronic_Product_Manufacturing,Computer and electronic product manufacturing,549926035,NA,NA,NA
+"Electrical_Equipment,_Appliances,_and_Components_Manufacturing","Electrical equipment, appliance, and component manufacturing",200841502,NA,NA,NA
+Motor_Vehicle_and_Parts_Manufacturing,Transportation equipment manufacturing,695175950,NA,NA,NA
+Ships_and_Boats_Manufacturing,Transportation equipment manufacturing,695175950,NA,NA,NA
+Other_Transportation_Equipment_Manufacturing,Transportation equipment manufacturing,695175950,NA,NA,NA
+Furniture_and_Related_Products_Manufacturing,Furniture and related product manufacturing,29316721,NA,NA,NA
+Medical_and_Dental_Supplies_Manufacturing,Miscellaneous manufacturing,188094618,NA,NA,NA
+Other_Miscellaneous_Manufacturing,Miscellaneous manufacturing,188094618,NA,NA,NA
+Wholesale_Durable_Goods,Durable goods,978561189,NA,NA,NA
+Wholesale_Nondurable_Goods,Nondurable goods,1313664732,NA,NA,NA
+Motor_Vehicle_and_Parts_Dealers,Motor vehicle dealers and parts dealers,193548671,NA,NA,NA
+Other_Non_Gas_Stations_Retail,Furniture and home furnishings stores,40968324,NA,NA,NA
+Other_Non_Gas_Stations_Retail,Electronics and appliance stores,70298608,NA,NA,NA
+Other_Non_Gas_Stations_Retail,Building material and garden equipment and supplies dealers,143420345,NA,NA,NA
+Food_and_Beverages_Stores,"Food, beverage and liquor stores",357593743,NA,NA,NA
+Other_Non_Gas_Stations_Retail,Health and personal care stores,269233999,NA,NA,NA
+Gas_Stations,Gasoline stations,79075751,NA,NA,NA
+Other_Non_Gas_Stations_Retail,Clothing and clothing accessories stores,150063186,NA,NA,NA
+Other_Non_Gas_Stations_Retail,"Sporting goods, hobby, book, and music stores",58250156,NA,NA,NA
+General_Merchandise_Stores,General merchandise stores,606232397,NA,NA,NA
+Other_Non_Gas_Stations_Retail,Miscellaneous store retailers,67648042,NA,NA,NA
+Other_Non_Gas_Stations_Retail,Nonstore retailers,115035235,NA,NA,NA
+Air_Transportation,"Air, rail, and water transportation",204887146,NA,NA,NA
+Rail_Transportation,"Air, rail, and water transportation",204887146,NA,NA,NA
+Water_Transportation,"Air, rail, and water transportation",204887146,NA,NA,NA
+Truck_Transportation,Truck transportation,89708004,NA,NA,NA
+Transit_and_Ground_Passenger_Transportation,Transit and ground passenger transportation,12433081,NA,NA,NA
+Pipeline_Transportation,Pipeline transportation,10230394,NA,NA,NA
+Other_Transportation_and_Support_Activities,Other transportation and support activities,154458876,NA,NA,NA
+Warehousing_and_Storage,Warehousing and storage,12294049,NA,NA,NA
+Publishing_Industries_(Except_Internet),Publishing industries (except Internet),190531473,NA,NA,NA
+Movie_Theaters,Motion picture and sound recording industries,63135081,NA,NA,NA
+Other_Motion_Picture_and_Sound_Recording,Motion picture and sound recording industries,63135081,NA,NA,NA
+Broadcasting_(Except_Internet)_and_Telecommunications,Broadcasting (except Internet),84468373,NA,NA,NA
+Telephone_Communication,"Telecommunications (including paging, cellular, satellite, cable, internet service providers, etc.)",433056557,NA,NA,NA
+Cable_Television,"Telecommunications (including paging, cellular, satellite, cable, internet service providers, etc.)",433056557,NA,NA,NA
+Other_Telecommunication,"Telecommunications (including paging, cellular, satellite, cable, internet service providers, etc.)",433056557,NA,NA,NA
+Information_and_Data_Processing,Data processing services,21776731,NA,NA,NA
+Information_and_Data_Processing,Other information services,46963373,NA,NA,NA
+Depository_Credit_Intermediation,Credit intermediation,110305515,NA,NA,NA
+Other_Intermediation,Credit intermediation,110305515,NA,NA,NA
+Nondepository_Credit_Intermediation,Credit intermediation,110305515,NA,NA,NA
+"Securities,_Commodity_Contracts,_and_Other_Financial_Investments_and_Related_Activities","Securities, commodity contracts, other financial investments, and related activities",160048311,NA,NA,NA
+Insurance_Carriers,Insurance carriers and related activities,1680201744,NA,NA,NA
+Insurance_Agencies_and_Brokers_and_Related_Services,Insurance carriers and related activities,1680201744,NA,NA,NA
+"Funds,_Trusts,_and_Other_Financial_Vehicles_","Funds, trusts, and other financial vehicles",1158412,NA,NA,NA
+Real_Estate,Real estate,49457986,NA,NA,NA
+Rental_and_Leasing_(Including_Nonfinancial_Intangibles),Rental and leasing services,69924861,NA,NA,NA
+Rental_and_Leasing_(Including_Nonfinancial_Intangibles),Lessors of nonfinancial intangible assets (except copyrighted works),1787153,NA,NA,NA
+Legal_Services,"Professional, scientific, and technical services",587866258,NA,NA,NA
+Computer_Systems_Design_and_Related_Services,"Professional, scientific, and technical services",587866258,NA,NA,NA
+"Other_Professional,_Scientific,_and_Technical_Services","Professional, scientific, and technical services",587866258,NA,NA,NA
+Management_Of_Companies_and_Enterprises,Management of companies (holding companies),204354194,NA,NA,NA
+Administrative_and_Support_Services,Administrative and support services,198777061,NA,NA,NA
+Waste_Management_and_Remediation_Services,Waste management and remediation services,43504574,NA,NA,NA
+Educational_Services,Educational services,35997241,NA,NA,NA
+Ambulatory_Health_Care_Services,Offices of health practitioners and outpatient care centers,226134889,NA,NA,NA
+Social_Assistance,Miscellaneous health care and social assistance,63173315,NA,NA,NA
+Hospitals,"Hospitals, nursing, and residential care facilities",90274573,NA,NA,NA
+Nursing_and_Residential_Care_Facilities,"Hospitals, nursing, and residential care facilities",90274573,NA,NA,NA
+"Independent_Artists,_Writers,_and_Performers","Other arts, entertainment, and recreation",19017065,NA,NA,NA
+"Other_Performing_Arts,_Spectator_Sports,_Museums,_and_Related_Activities","Other arts, entertainment, and recreation",19017065,NA,NA,NA
+Amusement_Parks,"Amusement, gambling, and recreation industries",23262003,NA,NA,NA
+Gambling_and_Bowling,"Amusement, gambling, and recreation industries",23262003,NA,NA,NA
+Other_Recreation_Services,"Amusement, gambling, and recreation industries",23262003,NA,NA,NA
+Accomodation,Accommodation,59599541,NA,NA,NA
+Food_Services_and_Drinking_Places,Food services and drinking places,169540458,NA,NA,NA
+Other_Services_(Except_Public_Administration),Other services,73856010,NA,NA,NA
