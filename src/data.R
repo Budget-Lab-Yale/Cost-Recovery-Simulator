@@ -153,13 +153,13 @@ build_investment_data = function(scenario_info, assumptions) {
     # Impute investment by legal form
     left_join(
       build_ccorp_shares(), 
-      by = c('industry', 'asset_class')
+      by = c('year', 'industry', 'asset_class')
     ) %>% 
     mutate(
       ccorp = investment * ccorp_share, 
       pt    = investment * (1 - ccorp_share)
     ) %>% 
-    select(-standard_industry, -ccorp_share, -investment) %>% 
+    select(-ccorp_share, -investment) %>% 
     pivot_longer(
       cols      = c(pt, ccorp), 
       names_to  = 'form', 
@@ -252,10 +252,8 @@ build_ccorp_shares = function() {
   #  - ccorp shares (df)
   #----------------------------------------------------------------------------
   
-  
-  
   # read c corp shares of capital stock by asset class and industry 
-  ccorp_shares = read_csv('./resources/ccorp_share.csv',
+  read_csv('./resources/ccorp_share.csv',
                           show_col_types = FALSE) %>%
     
     # switch from standard to detailed industries
@@ -280,15 +278,14 @@ build_ccorp_shares = function() {
       # add projected years fixed at 2021 shares
       !!!setNames(rep(1, length(2022:2054)),
                   2022:2054),
-      across(.cols = `2022`:`2054`,
-             .fns  = ~ .x*ccorp_share
-             )
+      across(.cols = `2022`:`2054`, .fns  = ~ .x * ccorp_share)
     ) %>%
     select(!ccorp_share) %>%
     pivot_longer(
-      cols      = -c('industry','asset_class','b'),
-      names_to  = 'year',
-      values_to = 'ccorp_share'
+      cols            = -c('industry','asset_class','b'),
+      names_to        = 'year',
+      names_transform = as.integer, 
+      values_to       = 'ccorp_share'
     ) %>%
     mutate(
       ccorp_share = ifelse(year < 2022,
@@ -299,6 +296,5 @@ build_ccorp_shares = function() {
                    ccorp_share)
     ) %>%
     select(!b) %>%
-    
     return()
 }
