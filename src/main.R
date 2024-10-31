@@ -10,9 +10,12 @@ runscript_id = 'tests/bonus'
 list.files('./src', recursive = T) %>% 
   walk(.f = ~ if (.x != 'main.R') source(file.path('./src/', .x)))
 
+look = do_scenario('baseline')
+
 # Run simulation for all scenarios
 walk(runscript$id, do_scenario)
 
+print(as.numeric(end-start))
 # TODO across-scenario post-processing comparisons
 
 

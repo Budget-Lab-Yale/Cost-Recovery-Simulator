@@ -164,7 +164,6 @@ calc_deduction_usage = function(scenario_info, depreciation_detailed, assumption
     group_by(form, year = nol_year) %>% 
     summarise(nol = sum(nol), .groups = 'drop')
   
-  
   # Combine, write, and return
   output = depreciation %>% 
     left_join(assumptions$usage, by = c('form', 'year')) %>% 
@@ -174,7 +173,7 @@ calc_deduction_usage = function(scenario_info, depreciation_detailed, assumption
     mutate(total = depreciation + nol) %>% 
     write_csv(file.path(scenario_info$paths$output, 'totals/deductions.csv'))
   
-    return(output)
+  return(output)
 }
 
 
@@ -270,8 +269,6 @@ calc_schedule = function(B, L, bonus, s179, bonus_takeup, s179_takeup, max_t) {
   return()
 }
 
-
-
 calc_macrs = function(B, L) {
   
   #----------------------------------------------------------------------------
@@ -310,6 +307,4 @@ calc_macrs = function(B, L) {
   # Piece together and return
   return(c(db_half[1:switch], sl_remaining))
 }
-
-
 

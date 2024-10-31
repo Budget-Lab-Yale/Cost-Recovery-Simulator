@@ -1,0 +1,126 @@
+detailed_industry,soi_industry,business_receipts
+Farms,Agricultural production,98851427
+"Forestry,_Fishing,_and_Related_Activites",Forestry and logging,14178897
+"Forestry,_Fishing,_and_Related_Activites","Support activities and fishing, hunting, and trapping",27041006
+Oil_and_Gas_Extraction,Oil and gas extraction,166989539
+Mining_(Except_Oil_and_Gas),Coal mining,27139791
+Mining_(Except_Oil_and_Gas),Metal ore mining,44733094
+Mining_(Except_Oil_and_Gas),Nonmetallic mineral mining and quarrying,27424435
+Support_Activities_For_Mining,Support activities for mining,84872306
+Electric_Power_Transmission_and_Distribution,"Electric power generation, transmission, and distribution",328017143
+Hydroelectric_Power_Generation,"Electric power generation, transmission, and distribution",328017143
+Nuclear_Electric_Power_Generation,"Electric power generation, transmission, and distribution",328017143
+"Fossil_Fuel_Electric_Power_Generation,_Combustion","Electric power generation, transmission, and distribution",328017143
+Other_Electric_Power_Generation,"Electric power generation, transmission, and distribution",328017143
+Natural_Gas_Distribution_and_Transmission,Natural gas distribution,112511451
+Water_and_Sewer_Systems,"Water, sewage, and other systems",8296070
+"Fossil_Fuel_Electric_Power_Generation,_Steam_and_Combined_Cycle",Combination gas and electric,216094226
+Construction,Construction,1587919987
+"Grain,_Sugar,_and_Vegetable_Oil_Products_Manufacturing","Animal food manufacturing, grain and oilseed milling",104693420
+"Grain,_Sugar,_and_Vegetable_Oil_Products_Manufacturing",Sugar and confectionery product,46751478
+Other_Food_Products_Manufacturing,"Fruit and vegetable preserving, and specialty food",44327763
+Other_Food_Products_Manufacturing,Dairy product,39707573
+Other_Food_Products_Manufacturing,Meat and seafood processing,104468858
+Other_Food_Products_Manufacturing,Bakeries and tortilla manufacturing,39661995
+Other_Food_Products_Manufacturing,Other food,104171393
+Beverage_and_Tobacco_Products_Manufacturing,Beverage and tobacco product manufacturing,152522384
+"Knitted_Goods,_Carpets,_and_Textile_Finishing_Manufacturing",Textile mills,13976873
+Other_Textile_and_Textile_Product_Mills,Textile product mills,26813836
+Apparel_Manufacturing,Apparel manufacturing,58940255
+Leather_and_Allied_Products_Manufacturing,Leather and allied product manufacturing,8788622
+Wood_Product_Manufacturing,Wood product manufacturing,73997131
+Paper_Manufacturing,Paper manufacturing,191952257
+Printing_and_Related_Support_Activities,Printing and related support activities,90336370
+Petroleum_Refining,Petroleum refineries (including integrated),1793586160
+Other_Petroleum_and_Coal_Products_Manufacturing,"Asphalt paving, roofing, other petroleum and coal products",16335276
+Chemical_Manufacturing,Chemical manufacturing,808897810
+Plastics_and_Rubber_Products_Manufacturing,Plastics and rubber products manufacturing,171525175
+Other_Nonmetalic_Mineral_Products_Manufacturing,"Clay, refractory, and other nonmetallic mineral product",20658994
+Glass_Products_Manufacturing,Glass and glass product,23132499
+Cement_Manufacturing,"Cement, concrete, lime and gypsum product",82088473
+Primary_Ferrous_Metal_Manufacturing,"Iron, steel mills and steel product",143590271
+Primary_Nonferrous_Metal_Manufacturing,Nonferrous metal production and processing,112549558
+Primary_Ferrous_Metal_Manufacturing,Foundries,25592957
+Primary_Nonferrous_Metal_Manufacturing,Foundries,25592957
+Fabricated_Metal_Product_Manufacturing,Fabricated metal product manufacturing,323374573
+Machinery_Manufacturing,Machinery manufacturing,382619349
+Computer_and_Electronic_Product_Manufacturing,Computer and electronic product manufacturing,659633542
+"Electrical_Equipment,_Appliances,_and_Components_Manufacturing","Electrical equipment, appliance, and component manufacturing",254094724
+Motor_Vehicle_and_Parts_Manufacturing,Motor vehicles and parts,602727111
+Other_Transportation_Equipment_Manufacturing,Aerospace product and parts,272648670
+Ships_and_Boats_Manufacturing,Ship and boat building,36861031
+Other_Transportation_Equipment_Manufacturing,Other transportation equipment and railroad rolling stock,29036235
+Furniture_and_Related_Products_Manufacturing,Furniture and related product manufacturing,67861589
+Medical_and_Dental_Supplies_Manufacturing,Medical equipment and supplies,142253216
+Other_Miscellaneous_Manufacturing,Other miscellaneous manufacturing,104784547
+Wholesale_Durable_Goods,"Merchant wholesalers, durable goods",1730919856
+Wholesale_Nondurable_Goods,"Merchant wholesalers, nondurable goods",2049748851
+Motor_Vehicle_and_Parts_Dealers,Motor vehicle dealers and parts dealers,827574110
+Other_Non_Gas_Stations_Retail,Furniture and home furnishings stores,92541918
+Other_Non_Gas_Stations_Retail,Electronics and appliance stores,116087796
+Other_Non_Gas_Stations_Retail,Building material and garden equipment and supplies dealers,252308854
+Food_and_Beverages_Stores,"Food, beverage and liquor stores",497444214
+Other_Non_Gas_Stations_Retail,Health and personal care stores,268148005
+Gas_Stations,Gasoline stations,320202097
+Other_Non_Gas_Stations_Retail,Clothing and clothing accessories stores,188067412
+Other_Non_Gas_Stations_Retail,"Sporting goods, hobby, book, and music stores",88375172
+General_Merchandise_Stores,General merchandise stores,601250800
+Other_Non_Gas_Stations_Retail,Miscellaneous store retailers,136569089
+Other_Non_Gas_Stations_Retail,Nonstore retailers,161943321
+Air_Transportation,Air transportation,152842697
+Rail_Transportation,Rail transportation,62071146
+Water_Transportation,Water transportation,26703438
+Truck_Transportation,Truck transportation,237892055
+Transit_and_Ground_Passenger_Transportation,Transit and ground passenger transportation,25080467
+Pipeline_Transportation,Pipeline transportation,10210083
+Other_Transportation_and_Support_Activities,Other transportation and support activities,212161652
+Warehousing_and_Storage,Warehousing and storage,21022125
+Publishing_Industries_(Except_Internet),Publishing industries (except Internet),249056125
+Movie_Theaters,Motion picture and video industries (except video rental),65715212
+Other_Motion_Picture_and_Sound_Recording,Motion picture and video industries (except video rental),65715212
+Other_Motion_Picture_and_Sound_Recording,Sound recording industries,7304153
+Broadcasting_(Except_Internet)_and_Telecommunications,Broadcasting (except Internet),109563864
+Telephone_Communication,"Telecommunications (including paging, cellular, satellite, cable and Internet service providers)",452745035
+Cable_Television,"Telecommunications (including paging, cellular, satellite, cable and Internet service providers)",452745035
+Other_Telecommunication,"Telecommunications (including paging, cellular, satellite, cable and Internet service providers)",452745035
+Information_and_Data_Processing,"Data Processing, Hosting, and Related Services",43144923
+Information_and_Data_Processing,Other information services,46551537
+Depository_Credit_Intermediation,Depository credit intermediation,26319373
+Nondepository_Credit_Intermediation,Credit card issuing and other consumer credit,59771072
+Nondepository_Credit_Intermediation,Real estate credit (including mortgage bankers and originators),19802835
+Nondepository_Credit_Intermediation,"International, secondary financing, and other nondepository credit intermediation",15126729
+Other_Intermediation,"Activities related to credit intermediation (loan brokers, check clearing, etc.)",41406814
+"Securities,_Commodity_Contracts,_and_Other_Financial_Investments_and_Related_Activities","Securities, commodity contracts, other financial investments and related activities",237070588
+Insurance_Carriers,Life insurance,671447634
+Insurance_Carriers,Mutual property and casualty companies (Form 1120-PC),199167861
+Insurance_Carriers,Stock property and casualty companies (Form 1120-PC),563269398
+Insurance_Agencies_and_Brokers_and_Related_Services,Insurance agencies and brokerages,80560275
+Insurance_Agencies_and_Brokers_and_Related_Services,"Other insurance related activities (including third-party admin. of Ins., etc.)",48183361
+"Funds,_Trusts,_and_Other_Financial_Vehicles_","Funds, trusts, and other financial vehicles",954071
+Real_Estate,Real estate,151646641
+Rental_and_Leasing_(Including_Nonfinancial_Intangibles),Rental and leasing services,114429553
+Legal_Services,Legal services,91831520
+"Other_Professional,_Scientific,_and_Technical_Services","Accounting, tax preparation, bookkeeping, and payroll services",38000489
+"Other_Professional,_Scientific,_and_Technical_Services","Architectural, engineering, and related services",214650452
+"Other_Professional,_Scientific,_and_Technical_Services",Specialized design services,21966439
+Computer_Systems_Design_and_Related_Services,Computer systems design and related services,193773838
+"Other_Professional,_Scientific,_and_Technical_Services","Management, scientific, and technical consulting services",210906490
+"Other_Professional,_Scientific,_and_Technical_Services",Scientific research and development services,35381961
+"Other_Professional,_Scientific,_and_Technical_Services",Advertising and related services,85692443
+"Other_Professional,_Scientific,_and_Technical_Services","Other professional, scientific, and technical services",81532134
+Management_Of_Companies_and_Enterprises,Management of companies (holding companies),199680891
+Administrative_and_Support_Services,Administrative and support services,420026864
+Waste_Management_and_Remediation_Services,Waste management and remediation services,63727256
+Educational_Services,Educational services,40438008
+Ambulatory_Health_Care_Services,Offices of health practitioners and outpatient care centers,376064833
+Social_Assistance,Miscellaneous health care and social assistance,95007485
+Hospitals,"Hospitals, nursing, and residential care facilities",118944648
+Nursing_and_Residential_Care_Facilities,"Hospitals, nursing, and residential care facilities",118944648
+"Independent_Artists,_Writers,_and_Performers","Other arts, entertainment, and recreation",40856485
+"Other_Performing_Arts,_Spectator_Sports,_Museums,_and_Related_Activities","Other arts, entertainment, and recreation",40856485
+Amusement_Parks,"Amusement, gambling, and recreation industries",50476178
+Gambling_and_Bowling,"Amusement, gambling, and recreation industries",50476178
+Other_Recreation_Services,"Amusement, gambling, and recreation industries",50476178
+Accomodation,Accommodation,95912333
+Food_Services_and_Drinking_Places,Food services and drinking places,328087029
+Other_Services_(Except_Public_Administration),Other services,205346816

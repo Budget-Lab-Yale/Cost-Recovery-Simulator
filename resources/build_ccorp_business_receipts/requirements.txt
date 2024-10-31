@@ -1,0 +1,11 @@
+tidyverse
+magrittr
+rlang
+yaml
+usincometaxes
+data.table
+openxlsx
+Hmisc
+parallel
+dineq
+modi
