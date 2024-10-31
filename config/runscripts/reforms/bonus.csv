@@ -1,0 +1,4 @@
+id,tax_law,years,expensing_takeup,usage,nol_schedule,investment_shifting
+baseline,baseline,2000:2050,baseline,baseline,baseline,baseline
+wyden-smith,wyden-smith,2000:2050,baseline,baseline,baseline,baseline
+perm-bonus-23,perm-bonus-23,2000:2050,baseline,baseline,baseline,baseline
