@@ -69,6 +69,7 @@ get_scenario_info = function(scenario_id) {
   dir.create(file.path(scenario_info$paths$output, 'detail'))
   dir.create(file.path(scenario_info$paths$output, 'totals'))
   dir.create(file.path(scenario_info$paths$output, 'deltas'))
+  dir.create(file.path(scenario_info$paths$output, 'chart_packs'))
   
   return(scenario_info)
 }
