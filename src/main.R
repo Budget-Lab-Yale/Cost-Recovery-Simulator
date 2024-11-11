@@ -2,33 +2,21 @@ library(tidyverse)
 library(data.table)
 library(magrittr)
 library(yaml)
+library(rlang)
+library(ggtext)
 
 # User-supplied parameters 
-runscript_id = 'tests/bonus'
+runscript_id = 'reforms/options'
 
 # Source all functions and define global variables
 list.files('./src', recursive = T) %>% 
   walk(.f = ~ if (.x != 'main.R') source(file.path('./src/', .x)))
 
-look = do_scenario('baseline')
-
 # Run simulation for all scenarios
 walk(runscript$id, do_scenario)
 
-print(as.numeric(end-start))
-# TODO across-scenario post-processing comparisons
-
-
-
-
-
-
-actual = tibble(
-  year = 2024:2033, 
-  tf   =  c(-46.5, -40.6, 24.8, 17.5, 13.5, 9.0, 6.4, 3.9, 2.9, 2.3),
-  jct  = c(-32.793, -35.465, -4.439, 26.031, 16.693, 11.773, 7.922, 4.267, 2.024, 0.9)
-)
-
+# Run across-scenario post-processing comparisons
+across_scenario_calculating_and_graphing()
 
 
 

@@ -92,4 +92,4 @@ calc_recovery_ratios = function(scenario_info, depreciation_detailed,
       file.path(scenario_info$paths$output, 'totals', file_name)
     )
 }
-  
+
