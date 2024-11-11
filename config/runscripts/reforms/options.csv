@@ -1,7 +1,7 @@
 id,tax_law,years,expensing_takeup,usage,nol_schedule,investment_shifting
-baseline,baseline,2000:2060,baseline,baseline,baseline,baseline
-wyden_smith,wyden_smith,2000:2060,baseline,baseline,baseline,baseline
-temp_bonus_2026_3yr,temp_bonus_2026_3yr,2000:2060,baseline,baseline,baseline,baseline
-temp_bonus_2027_5yr_phaseout,temp_bonus_2027_5yr_phaseout,2000:2060,baseline,baseline,baseline,baseline
-perm_bonus_2026,perm_bonus_2026,2000:2060,baseline,baseline,baseline,baseline
-perm_expensing_2026,perm_expensing_2026,2000:2060,full_2026,baseline,baseline,baseline
+baseline,baseline,2007:2070,baseline,baseline,baseline,baseline
+temp_bonus_2025_3yr,temp_bonus_2025_3yr,2007:2070,baseline,baseline,baseline,baseline
+temp_bonus_2025_5yr_phaseout,temp_bonus_2025_5yr_phaseout,2007:2070,baseline,baseline,baseline,baseline
+perm_bonus_2025,perm_bonus_2025,2007:2070,baseline,baseline,baseline,baseline
+perm_expensing_2025,perm_expensing_2025,2007:2070,full_2026,baseline,baseline,baseline
+ncr_2025,ncr_2025,2007:2070,baseline,baseline,baseline,baseline

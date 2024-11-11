@@ -44,8 +44,8 @@ do_scenario = function(id) {
   revenue    = calc_revenue(scenario_info, tax_law, deductions)
   
   # Post-processing
-  calc_recovery_ratios(scenario_info, depreciation_detailed, macro_projections, assumptions, NULL,        0.02)
-  calc_recovery_ratios(scenario_info, depreciation_detailed, macro_projections, assumptions, form,        0.02)
-  calc_recovery_ratios(scenario_info, depreciation_detailed, macro_projections, assumptions, asset_class, 0.02)
-  calc_recovery_ratios(scenario_info, depreciation_detailed, macro_projections, assumptions, industry,    0.02)
+  calc_recovery_ratios(scenario_info, depreciation_detailed, macro_projections, assumptions, NULL,           0.02)
+  calc_recovery_ratios(scenario_info, depreciation_detailed, macro_projections, assumptions, form,           0.02)
+  calc_recovery_ratios(scenario_info, depreciation_detailed, macro_projections, assumptions, asset_class,    0.02)
+  calc_recovery_ratios(scenario_info, depreciation_detailed, macro_projections, assumptions, major_industry, 0.02)
 }

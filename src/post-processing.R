@@ -6,8 +6,6 @@
 #---------------------------------------------------
 
 
-
-
 calc_recovery_ratios = function(scenario_info, depreciation_detailed, 
                                 macro_projections, assumptions, group_var, 
                                 spread = 0.02) {
@@ -40,6 +38,13 @@ calc_recovery_ratios = function(scenario_info, depreciation_detailed,
   
   
   depreciation_detailed %>% 
+    
+    # Join industry groups
+    left_join(
+      read_csv('./resources/industry_crosswalk.csv', show_col_types = FALSE) %>% 
+        select(-standard_industry),
+      by = 'industry'
+    ) %>% 
     
     # Aggregate before reshaping long (for memory)
     group_by(year, {{ group_var }}) %>% 

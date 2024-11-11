@@ -109,11 +109,12 @@ build_schedules = function(params, expensing_takeup) {
       relationship = 'many-to-many'
     ) %>% 
     select(-form) %>%
+    distinct() %>% 
     
     # Convert to list for the arguments of calc_schedule() and apply
     as.list() %>% 
     pmap(calc_schedule, max_t = max(params$L) + 1) %>% 
-    bind_rows() %>% 
+    bind_rows() %>%
     return()
 }
 
@@ -260,7 +261,7 @@ build_ccorp_shares = function() {
     left_join(read_csv('./resources/industry_crosswalk.csv',
                        show_col_types = FALSE),
               by = 'standard_industry') %>%
-    select(!standard_industry) %>%
+    select(-c(standard_industry, major_industry)) %>%
     pivot_longer(
       cols      = -industry,
       names_to  = 'asset_class',
@@ -296,5 +297,13 @@ build_ccorp_shares = function() {
                    ccorp_share)
     ) %>%
     select(!b) %>%
+    
+    # Assume pre-2007 is the same as 2007
+    bind_rows(
+      (.) %>% 
+        filter(year == 2007) %>% 
+        select(-year) %>% 
+        expand_grid(year = 2000:2006)
+    ) %>% 
     return()
 }
