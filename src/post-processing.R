@@ -2,8 +2,49 @@
 # Post-processing.R
 # 
 # Contains functions to process detailed deductions
-# file for summary output
+# output and revenue files for supplementary output
 #---------------------------------------------------
+
+
+
+
+calc_revenue_estimate = function(scenario_info, revenue) {
+  
+  #----------------------------------------------------------------------------
+  # Calculates the difference in revenues from baseline for a given non-
+  # baseline scenario's revenue projections.
+  # 
+  # Parameters:
+  # - scenario_info (list) : scenario info object (see get_scenario_info())
+  # - revenue (df)         : scenario revenue levels
+  #
+  # Returns:
+  # - void (writes output)
+  #----------------------------------------------------------------------------
+  
+  output_root %>% 
+    
+    # Read baseline revenue
+    file.path('baseline/totals/revenue.csv') %>% 
+    read_csv(show_col_types = F) %>% 
+    select(year, baseline = total) %>% 
+    
+    # Join counterfactual scenario revenue
+    left_join(
+      revenue %>% 
+        select(year, reform = total), 
+      by = 'year'
+    ) %>% 
+    
+    # Calculate delta and write
+    mutate(delta = reform - baseline) %>% 
+    select(year, delta) %>%
+    write_csv(
+      file.path(scenario_info$paths$output, 'deltas/revenue.csv')
+    )
+  
+}
+
 
 
 calc_recovery_ratios = function(scenario_info, depreciation_detailed, 
