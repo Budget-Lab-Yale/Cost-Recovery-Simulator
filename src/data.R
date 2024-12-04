@@ -109,11 +109,12 @@ build_schedules = function(params, expensing_takeup) {
       relationship = 'many-to-many'
     ) %>% 
     select(-form) %>%
+    distinct() %>% 
     
     # Convert to list for the arguments of calc_schedule() and apply
     as.list() %>% 
     pmap(calc_schedule, max_t = max(params$L) + 1) %>% 
-    bind_rows() %>% 
+    bind_rows() %>%
     return()
 }
 
@@ -153,13 +154,13 @@ build_investment_data = function(scenario_info, assumptions) {
     # Impute investment by legal form
     left_join(
       build_ccorp_shares(), 
-      by = c('industry', 'asset_class')
+      by = c('year', 'industry', 'asset_class')
     ) %>% 
     mutate(
       ccorp = investment * ccorp_share, 
       pt    = investment * (1 - ccorp_share)
     ) %>% 
-    select(-standard_industry, -ccorp_share, -investment) %>% 
+    select(-ccorp_share, -investment) %>% 
     pivot_longer(
       cols      = c(pt, ccorp), 
       names_to  = 'form', 
@@ -243,28 +244,66 @@ build_assumptions = function(scenario_info) {
 build_ccorp_shares = function() {
   
   #----------------------------------------------------------------------------
-  # TODO
+  # Computes ccorp shares by industry by asset class by year using business
+  # receipts data
   #
   # Parameters:
-  #  - TODO
   # 
   # Returns:
-  #  - TODO
+  #  - ccorp shares (df)
   #----------------------------------------------------------------------------
   
-  # Read C corp shares by asset class and industry 
-  read_csv('./resources/industry_crosswalk.csv', show_col_types = F) %>% 
-    left_join(
-      read_csv('./resources/ccorp_share.csv', show_col_types = F) %>% 
-        pivot_longer(
-          cols      = -standard_industry, 
-          names_to  = 'asset_class', 
-          values_to = 'ccorp_share'
-        ), 
-      by = 'standard_industry', 
-      relationship = 'many-to-many'
-    ) 
-  
-  # TODO adjust for compositional shifts over time
-  
+  # read c corp shares of capital stock by asset class and industry 
+  read_csv('./resources/ccorp_share.csv',
+                          show_col_types = FALSE) %>%
+    
+    # switch from standard to detailed industries
+    left_join(read_csv('./resources/industry_crosswalk.csv',
+                       show_col_types = FALSE),
+              by = 'standard_industry') %>%
+    select(-c(standard_industry, major_industry)) %>%
+    pivot_longer(
+      cols      = -industry,
+      names_to  = 'asset_class',
+      values_to = 'ccorp_share'
+    ) %>%
+    
+    # add business receipts data
+    left_join(read_csv('./resources/ccorp_business_receipts.csv',
+                       show_col_types = FALSE),
+              by = 'industry') %>%
+    
+    # compute ccorp_shares based on business receipts shares
+    mutate(
+      b = ccorp_share/`2021`,
+      # add projected years fixed at 2021 shares
+      !!!setNames(rep(1, length(2022:2054)),
+                  2022:2054),
+      across(.cols = `2022`:`2054`, .fns  = ~ .x * ccorp_share)
+    ) %>%
+    select(!ccorp_share) %>%
+    pivot_longer(
+      cols            = -c('industry','asset_class','b'),
+      names_to        = 'year',
+      names_transform = as.integer, 
+      values_to       = 'ccorp_share'
+    ) %>%
+    mutate(
+      ccorp_share = ifelse(year < 2022,
+                   # fix shares > 1
+                   ifelse(ccorp_share*b>1,
+                          1,
+                          ccorp_share*b),
+                   ccorp_share)
+    ) %>%
+    select(!b) %>%
+    
+    # Assume pre-2007 is the same as 2007
+    bind_rows(
+      (.) %>% 
+        filter(year == 2007) %>% 
+        select(-year) %>% 
+        expand_grid(year = 2000:2006)
+    ) %>% 
+    return()
 }

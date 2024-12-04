@@ -1,0 +1,118 @@
+﻿industry,detailed_industry
+Crop production,Farms
+Animal production,Farms
+Forestry and logging,"Forestry,_Fishing,_and_Related_Activites"
+"Fishing, hunting, and trapping","Forestry,_Fishing,_and_Related_Activites"
+Support activities for agriculture and forestry,"Forestry,_Fishing,_and_Related_Activites"
+Oil and gas extraction,Oil_and_Gas_Extraction
+Other mining,Mining_(Except_Oil_and_Gas)
+Support activities for mining,Support_Activities_For_Mining
+Utilities,Hydroelectric_Power_Generation
+Utilities,Nuclear_Electric_Power_Generation
+Utilities,"Fossil_Fuel_Electric_Power_Generation,_Steam_and_Combined_Cycle"
+Utilities,"Fossil_Fuel_Electric_Power_Generation,_Combustion"
+Utilities,Other_Electric_Power_Generation
+Utilities,Electric_Power_Transmission_and_Distribution
+Utilities,Natural_Gas_Distribution_and_Transmission
+Utilities,Water_and_Sewer_Systems
+Construction,Construction
+Food manufacturing,"Grain,_Sugar,_and_Vegetable_Oil_Products_Manufacturing"
+Food manufacturing,Other_Food_Products_Manufacturing
+Beverage and tobacco product manufacturing,Beverage_and_Tobacco_Products_Manufacturing
+Textile mills and textile product mills,"Knitted_Goods,_Carpets,_and_Textile_Finishing_Manufacturing"
+Textile mills and textile product mills,Other_Textile_and_Textile_Product_Mills
+Apparel manufacturing,Apparel_Manufacturing
+Leather and allied product manufacturing,Leather_and_Allied_Products_Manufacturing
+Wood product manufacturing,Wood_Product_Manufacturing
+Paper manufacturing,Paper_Manufacturing
+Printing and related support activities,Printing_and_Related_Support_Activities
+Petroleum and coal products manufacturing,Petroleum_Refining
+Petroleum and coal products manufacturing,Other_Petroleum_and_Coal_Products_Manufacturing
+Chemical manufacturing,Chemical_Manufacturing
+Plastics and rubber products manufacturing,Plastics_and_Rubber_Products_Manufacturing
+Nonmetallic mineral products manufacturing,Glass_Products_Manufacturing
+Nonmetallic mineral products manufacturing,Cement_Manufacturing
+Nonmetallic mineral products manufacturing,Other_Nonmetalic_Mineral_Products_Manufacturing
+Primary metal manufacturing,Primary_Ferrous_Metal_Manufacturing
+Primary metal manufacturing,Primary_Nonferrous_Metal_Manufacturing
+Fabricated metal products manufacturing,Fabricated_Metal_Product_Manufacturing
+Machinery manufacturing,Machinery_Manufacturing
+Computer and electrical product manufacturing,Computer_and_Electronic_Product_Manufacturing
+"Electrical equipment, appliance and component manufacturing","Electrical_Equipment,_Appliances,_and_Components_Manufacturing"
+Transportation equipment manufacturing,Motor_Vehicle_and_Parts_Manufacturing
+Transportation equipment manufacturing,Other_Transportation_Equipment_Manufacturing
+Transportation equipment manufacturing,Ships_and_Boats_Manufacturing
+Furniture and related product manufacturing,Furniture_and_Related_Products_Manufacturing
+Miscellaneous manufacturing,Medical_and_Dental_Supplies_Manufacturing
+Miscellaneous manufacturing,Other_Miscellaneous_Manufacturing
+"Merchant wholesalers, durable goods",Wholesale_Durable_Goods
+"Merchant wholesalers, nondurable goods",Wholesale_Nondurable_Goods
+Motor vehicle and parts dealers,Motor_Vehicle_and_Parts_Dealers
+Furniture and home furnishing stores,Other_Non_Gas_Stations_Retail
+Electronics and appliance stores,Other_Non_Gas_Stations_Retail
+Building materials and garden equipment and supplies dealers,Other_Non_Gas_Stations_Retail
+Food and beverage stores,Food_and_Beverages_Stores
+Health and personal care stores,Other_Non_Gas_Stations_Retail
+Gasoline stations,Gas_Stations
+Clothing and clothing accessories stores,Other_Non_Gas_Stations_Retail
+"Sporting goods, hobby, book, and music stores",Other_Non_Gas_Stations_Retail
+General merchandise stores,General_Merchandise_Stores
+Miscellaneous store retailers,Other_Non_Gas_Stations_Retail
+Nonstore retailers,Other_Non_Gas_Stations_Retail
+Air and rail transportation,Air_Transportation
+Air and rail transportation,Rail_Transportation
+Water transportation,Water_Transportation
+Truck transportation,Truck_Transportation
+Other transit and ground passenger transportation,Transit_and_Ground_Passenger_Transportation
+Pipeline transportation,Pipeline_Transportation
+Scenic and sightseeing transportation,Other_Transportation_and_Support_Activities
+Support activities for transportation,Other_Transportation_and_Support_Activities
+Couriers and messengers,Other_Transportation_and_Support_Activities
+Warehousing and storage,Warehousing_and_Storage
+Publishing industries (except internet),Publishing_Industries_(Except_Internet)
+Motion picture and sound recording industries,Movie_Theaters
+Motion picture and sound recording industries,Other_Motion_Picture_and_Sound_Recording
+Broadcasting (except internet),Broadcasting_(Except_Internet)_and_Telecommunications
+Tele- communications,Telephone_Communication
+Tele- communications,Cable_Television
+Tele- communications,Other_Telecommunication
+Data processing services,Information_and_Data_Processing
+Other information services,Information_and_Data_Processing
+Depository credit intermediation,Depository_Credit_Intermediation
+Non depository credit intermediation,Nondepository_Credit_Intermediation
+Activities related to credit intermediation,Other_Intermediation
+"Securities, commodity contracts and other financial investments and related activities","Securities,_Commodity_Contracts,_and_Other_Financial_Investments_and_Related_Activities"
+Insurance carriers and related activities,Insurance_Carriers
+Insurance carriers and related activities,Insurance_Agencies_and_Brokers_and_Related_Services
+"Funds, trusts, and other financial vehicles","Funds,_Trusts,_and_Other_Financial_Vehicles_"
+Real estate,Real_Estate
+Rental and leasing services,Rental_and_Leasing_(Including_Nonfinancial_Intangibles)
+Lessors of nonfinancial intangible assets (except copyrighted works),Rental_and_Leasing_(Including_Nonfinancial_Intangibles)
+Legal services,Legal_Services
+"Accounting, tax preparation, bookkeeping and payroll services","Other_Professional,_Scientific,_and_Technical_Services"
+"Architectural, engineering and related services","Other_Professional,_Scientific,_and_Technical_Services"
+Specialized design services,"Other_Professional,_Scientific,_and_Technical_Services"
+Computer systems design and related services,Computer_Systems_Design_and_Related_Services
+"Other professional, scientific, and technical services","Other_Professional,_Scientific,_and_Technical_Services"
+Management of companies (holding companies),Management_Of_Companies_and_Enterprises
+Administrative and support services,Administrative_and_Support_Services
+Waste management and remediation services,Waste_Management_and_Remediation_Services
+Educational services,Educational_Services
+Offices of physicians and dentists,Ambulatory_Health_Care_Services
+Offices of other health practitioners,Ambulatory_Health_Care_Services
+Outpatient care centers,Ambulatory_Health_Care_Services
+Medical and diagnostic laboratories,Ambulatory_Health_Care_Services
+Home health care services,Ambulatory_Health_Care_Services
+Other ambulatory health care services,Ambulatory_Health_Care_Services
+Hospitals,Hospitals
+Nursing and residential care facilities,Nursing_and_Residential_Care_Facilities
+Social assistance,Social_Assistance
+"Performing arts, spectator sports and related industries","Independent_Artists,_Writers,_and_Performers"
+"Performing arts, spectator sports and related industries","Other_Performing_Arts,_Spectator_Sports,_Museums,_and_Related_Activities"
+"Museums, historical sites, and similar institutions","Other_Performing_Arts,_Spectator_Sports,_Museums,_and_Related_Activities"
+"Amusement, gambling, and recreation industries",Amusement_Parks
+"Amusement, gambling, and recreation industries",Gambling_and_Bowling
+"Amusement, gambling, and recreation industries",Other_Recreation_Services
+Accommodation,Accomodation
+Food service and drinking places,Food_Services_and_Drinking_Places
+Other services,Other_Services_(Except_Public_Administration)

@@ -1,0 +1,7 @@
+id,tax_law,years,expensing_takeup,usage,nol_schedule,investment_shifting
+baseline,baseline,2007:2070,baseline,baseline,baseline,baseline
+temp_bonus_2025_3yr,temp_bonus_2025_3yr,2007:2070,baseline,baseline,baseline,baseline
+temp_bonus_2025_5yr_phaseout,temp_bonus_2025_5yr_phaseout,2007:2070,baseline,baseline,baseline,baseline
+perm_bonus_2025,perm_bonus_2025,2007:2070,baseline,baseline,baseline,baseline
+perm_expensing_2025,perm_expensing_2025,2007:2070,full_2026,baseline,baseline,baseline
+ncr_2025,ncr_2025,2007:2070,baseline,baseline,baseline,baseline
