@@ -1,2 +1,2 @@
-id,tax_law,years,expensing_takeup,usage,nol_schedule,investment_shifting
-baseline,baseline,2000:2060,baseline,baseline,baseline,baseline
+id,tax_law,years,start_year,expensing_takeup,usage,nol_schedule,investment_shifting
+baseline,baseline,2000:2060,2026,baseline,baseline,baseline,baseline
