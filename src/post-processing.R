@@ -19,10 +19,10 @@ calc_revenue_estimate = function(scenario_info, revenue) {
   # - revenue (df)         : scenario revenue levels
   #
   # Returns:
-  # - void (writes output)
+  # - tibble of revenue estimate (also writes output)
   #----------------------------------------------------------------------------
   
-  output_root %>% 
+  revenue_estimate = output_root %>% 
     
     # Read baseline revenue
     file.path('baseline/totals/revenue.csv') %>% 
@@ -41,15 +41,15 @@ calc_revenue_estimate = function(scenario_info, revenue) {
     select(year, delta) %>%
     write_csv(
       file.path(scenario_info$paths$output, 'deltas/revenue.csv')
-    )
-  
+    ) %>% 
+    return()
 }
 
 
 
 calc_recovery_ratios = function(scenario_info, depreciation_detailed, 
                                 macro_projections, assumptions, group_var, 
-                                spread = 0.02) {
+                                spread) {
   
   #----------------------------------------------------------------------------
   # Calculates the ratio of the value of depreciation deductions (both real  
@@ -128,9 +128,21 @@ calc_recovery_ratios = function(scenario_info, depreciation_detailed,
     
     # Calculate lifetime recovery ratio
     mutate(across(.cols = c(real, pv), .fns = ~ . / investment)) %>% 
-    select(-investment) %>% 
     write_csv(
       file.path(scenario_info$paths$output, 'totals', file_name)
     )
 }
 
+
+
+
+# convert deductions to tax liability
+# calc PV of tax liability change, discounting by growth in deductions 
+#   (is this not just revenue?)
+# 
+
+# idea: treasury's long and short run are very similiar if investment grows at discount rate and doesnt chage a lot. test this.
+# 
+# - just one year PV 
+# - net interest
+# - net

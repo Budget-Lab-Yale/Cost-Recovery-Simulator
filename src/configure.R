@@ -46,6 +46,8 @@ get_scenario_info = function(scenario_id) {
     as.integer()
   scenario_info$years = years[1]:years[2]
   
+  scenario_info$start_year = as.integer(scenario_info$start_year)
+  
   # Create data dependency paths
   scenario_info$paths = list()
   scenario_info$paths$`Investment-Projections` = file.path(
