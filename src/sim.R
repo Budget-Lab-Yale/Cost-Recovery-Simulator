@@ -43,10 +43,8 @@ do_scenario = function(id) {
   deductions = calc_deduction_usage(scenario_info, depreciation_detailed, assumptions) 
   revenue    = calc_revenue(scenario_info, tax_law, deductions)
   
-  # Post-processing: revenue estimates and annuity calculations
-  if (id != 'baseline') {
-    revenue_estimate = calc_revenue_estimate(scenario_info, revenue)
-  }
+  # Post-processing: revenue estimates
+  revenue_estimate = calc_revenue_estimate(scenario_info, revenue)
   
   # Post-processing: recovery ratios
   calc_recovery_ratios(scenario_info, depreciation_detailed, macro_projections, assumptions, NULL,           0.02)

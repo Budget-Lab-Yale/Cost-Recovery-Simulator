@@ -1,8 +1,8 @@
 ---
 
 roots: 
-  input: './resources/input'
-  output: './resources/output'
+  input: '/gpfs/gibbs/project/sarin/shared/'
+  output: '/gpfs/gibbs/project/sarin/shared/model_data/Cost-Recovery-Simulator/v1'
 
 dependencies:
   Investment-Projections: '/model_data/Investment-Projections/v1/2024100807/baseline'

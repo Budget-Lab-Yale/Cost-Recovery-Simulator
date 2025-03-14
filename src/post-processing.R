@@ -40,7 +40,7 @@ calc_revenue_estimate = function(scenario_info, revenue) {
     mutate(delta = reform - baseline) %>% 
     select(year, delta) %>%
     write_csv(
-      file.path(scenario_info$paths$output, 'deltas/revenue.csv')
+      file.path(scenario_info$paths$output, 'deltas/revenues.csv')
     ) %>% 
     return()
 }
