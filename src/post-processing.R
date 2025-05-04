@@ -47,6 +47,35 @@ calc_revenue_estimate = function(scenario_info, revenue) {
 
 
 
+calc_stacked_revenue_estimates = function(scenarios) {
+  
+  #----------------------------------------------------------------------------
+  # For each scenario listed in the runscript, calculates the marginal 
+  # difference in revenues relative to the prior scenario in the list.
+  # 
+  # Parameters:
+  # - scenarios (str[]) : list of scenario names in stacking order
+  #
+  # Returns: void (writes to final scenario's output folder)
+  #----------------------------------------------------------------------------
+  
+  scenarios %>% 
+    map(
+      .f = ~ file.path(output_root, .x, 'deltas/revenues.csv') %>% 
+        read_csv(show_col_types = F) %>% 
+        mutate(scenario = .x, .before = everything())
+    ) %>% 
+    bind_rows() %>%
+    group_by(year) %>%
+    mutate(delta = delta - lag(delta)) %>%
+    ungroup() %>% 
+    pivot_wider(names_from = year, values_from = delta) %>% 
+    filter(scenario != 'baseline') %>% 
+    write_csv(file.path(output_root, scenarios[length(scenarios)], 'deltas/stacked_revenues.csv'))
+}
+
+
+
 calc_recovery_ratios = function(scenario_info, depreciation_detailed, 
                                 macro_projections, assumptions, group_var, 
                                 spread) {

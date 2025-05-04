@@ -6,7 +6,7 @@ library(rlang)
 library(ggtext)
 
 # User-supplied parameters 
-runscript_id = 'reforms/tcja_ext_r&d'
+runscript_id = 'reforms/tcja_ext_options'
 
 # Source all functions and define global variables
 list.files('./src', recursive = T) %>% 
@@ -15,3 +15,6 @@ list.files('./src', recursive = T) %>%
 # Run simulation for all scenarios
 walk(runscript$id, do_scenario)
 
+# Get stacked revenue estimates 
+calc_stacked_revenue_estimates(runscript$id)
+  

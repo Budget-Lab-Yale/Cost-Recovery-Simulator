@@ -1,0 +1,6 @@
+id,tax_law,years,start_year,expensing_takeup,usage,nol_schedule,investment_shifting
+baseline,baseline,2022:2056,2026,baseline,baseline,baseline,baseline
+baseline_cprates,baseline_cprates,2022:2056,2026,baseline,baseline,baseline,baseline
+perm_bonus_cprates,perm_bonus_cprates_2026,2022:2056,2026,baseline,baseline,baseline,baseline
+perm_bonus_r&d_cprates,perm_bonus_r&d_cprates_2026,2022:2056,2026,baseline,baseline,baseline,baseline
+perm_bonus_r&d_factories_cprates,perm_bonus_r&d_factories_cprates_2026,2022:2056,2026,baseline,baseline,baseline,baseline
