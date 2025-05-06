@@ -5,5 +5,5 @@ roots:
   output: '/gpfs/gibbs/project/sarin/shared/model_data/Cost-Recovery-Simulator/v1'
 
 dependencies:
-  Investment-Projections: '/model_data/Investment-Projections/v1/2024100807/baseline'
-  Macro-Projections: '/model_data/Macro-Projections/v3/2024100910/baseline'
+  Investment-Projections: '/model_data/Investment-Projections/v1/2025050616/baseline'
+  Macro-Projections: '/model_data/Macro-Projections/v3/2025040115/baseline'

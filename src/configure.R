@@ -16,7 +16,7 @@ runscript = file.path('./config/runscripts/', paste0(runscript_id, '.csv')) %>%
 platform_defaults = read_yaml('./config/platform_defaults.yaml')
 
 # Create output root
-time_stamp  = file.path(format(Sys.time(), '%Y%m%d%H%m'))
+time_stamp  = file.path(format(Sys.time(), '%Y%m%d%H%M'))
 output_root = file.path(platform_defaults$roots$output, time_stamp)
 dir.create(output_root)
 
