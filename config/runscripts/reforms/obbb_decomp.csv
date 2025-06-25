@@ -1,0 +1,4 @@
+id,tax_law,years,start_year,expensing_takeup,usage,nol_schedule,investment_shifting
+baseline,baseline_cprates,2022:2056,2025,baseline,baseline,baseline,baseline
+tcja_ext,40_cprates,2022:2056,2025,baseline,baseline,baseline,baseline
+03_factories,obbb_senate,2022:2056,2025,baseline,baseline,baseline,baseline

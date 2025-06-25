@@ -1,9 +1,9 @@
 ---
 
 roots: 
-  input: '/gpfs/gibbs/project/sarin/shared/'
-  output: '/gpfs/gibbs/project/sarin/shared/model_data/Cost-Recovery-Simulator/v1'
+  input: 'C:/Users/jar335/Documents/Interfaces/'
+  output: 'C:/Users/jar335/Documents/Interfaces/model_data/Cost-Recovery-Simulator/v1'
 
 dependencies:
-  Investment-Projections: '/model_data/Investment-Projections/v1/2025050616/baseline'
-  Macro-Projections: '/model_data/Macro-Projections/v3/2025040115/baseline'
+  Investment-Projections: 'model_data/Investment-Projections/v1/2025050616/baseline'
+  Macro-Projections: 'model_data/Macro-Projections/v3/2025040115/baseline'

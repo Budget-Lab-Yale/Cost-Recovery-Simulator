@@ -15,6 +15,5 @@ list.files('./src', recursive = T) %>%
 # Run simulation for all scenarios
 walk(runscript$id, do_scenario)
 
-# Get stacked revenue estimates 
+# Get stacked revenue estimates
 calc_stacked_revenue_estimates(runscript$id)
-  
