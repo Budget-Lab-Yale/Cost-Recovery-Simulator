@@ -6,7 +6,7 @@ library(rlang)
 library(ggtext)
 
 # User-supplied parameters 
-runscript_id = 'reforms/obbb_senate'
+runscript_id = 'reforms/obbb_house'
 
 # Source all functions and define global variables
 list.files('./src', recursive = T) %>% 

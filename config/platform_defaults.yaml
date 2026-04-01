@@ -1,9 +1,9 @@
 ---
 
 roots: 
-  input: 'C:/Users/jar335/Documents/Interfaces/'
-  output: 'C:/Users/jar335/Documents/Interfaces/model_data/Cost-Recovery-Simulator/v1'
+  input: '/nfs/roberts/project/pi_nrs36/shared/'
+  output: '/nfs/roberts/project/pi_nrs36/shared/model_data/Cost-Recovery-Simulator/v1'
 
 dependencies:
-  Investment-Projections: 'model_data/Investment-Projections/v1/2025050616/baseline'
-  Macro-Projections: 'model_data/Macro-Projections/v3/2025040115/baseline'
+  Investment-Projections: '/model_data/Investment-Projections/v1/2025050616/baseline'
+  Macro-Projections: '/model_data/Macro-Projections/v3/2025040115/baseline'
